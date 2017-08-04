@@ -10,11 +10,10 @@ from PyQt5 import QtWidgets, QtGui
 import sys
 import yaml
 
-import outfile
+from gui.mainwindowUI import Ui_MainWindow
+from gui.dialogUI import Ui_Dialog
+import gui.outfile
 
-from mainwindowUI import Ui_MainWindow
-from dialogUI import Ui_Dialog
-        
 class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self):
         super(SettingApp, self).__init__()
