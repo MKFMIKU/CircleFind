@@ -54,10 +54,10 @@ class Ui_MainWindow(object):
         self.label_3.setGeometry(QtCore.QRect(310, 70, 41, 16))
         self.label_3.setObjectName("label_3")
         self.label_4 = QtWidgets.QLabel(self.centralWidget)
-        self.label_4.setGeometry(QtCore.QRect(380, 70, 60, 16))
+        self.label_4.setGeometry(QtCore.QRect(385, 70, 60, 16))
         self.label_4.setObjectName("label_4")
         self.label_5 = QtWidgets.QLabel(self.centralWidget)
-        self.label_5.setGeometry(QtCore.QRect(440, 70, 31, 16))
+        self.label_5.setGeometry(QtCore.QRect(450, 70, 31, 16))
         self.label_5.setObjectName("label_5")
         MainWindow.setCentralWidget(self.centralWidget)
 
