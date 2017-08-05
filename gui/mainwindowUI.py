@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.settingButton.setStyleSheet("border-image: url(:/new/outer/set.png)")
         self.settingButton.setText("")
         self.settingButton.setObjectName("settingButton")
-        self.textBrowser = QtWidgets.QTextBrowser(self.centralWidget)
+        self.textBrowser = QtWidgets.QTextEdit(self.centralWidget)
         self.textBrowser.setGeometry(QtCore.QRect(30, 100, 451, 231))
         self.textBrowser.setObjectName("textBrowser")
         self.label = QtWidgets.QLabel(self.centralWidget)

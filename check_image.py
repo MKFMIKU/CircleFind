@@ -11,37 +11,44 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import saver
 from check_color import checkColor
+from functools import cmp_to_key
 
-
+def _sortCircle(a,b):
+    if abs(a[1]-b[1]) > 40:
+        return a[1]-b[1]
+    else:
+        return b[0]-a[0]
+    
+def _abs(a):
+    if a<0:
+        return -a
+    else:
+        return a
+        
 class CheckImage:
     def __init__(self, type=1):
         self._checkType(type)
         
     def _checkType(self, type):
         if type==1:
-            self.radius = 40
+            self.radius = 30
             self.size = [6,40]
-            self.range = [100,3500,1450,2100]
+            self.range = [400,3500,850,1300]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,40,30,50]
+            self.cycleFilter = [50,40,20,40]
         if type==2:
-            self.radius = 30
+            self.radius = 35
             self.size = [6,50]
-            self.range = [50,3200,1200,1650]
+            self.range = [50,3500,350,900]
             self.widthFilter = [2800,3500]
             self.threshFilter = [225,255]
             self.cycleFilter = [50,40,20,40]
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [100,3500,1550,2100]
+            self.range = [00,3600,550,1100]
             self.cycleFilter = [50,40,25,45]
-            self.cycleFilter = [50,40,20,40]
-        if type==4:
-            self.radius = 35
-            self.size = [6, 46]
-            self.range = [100,3500,1400,1950]
             self.cycleFilter = [50,40,20,40]
     
     def _drawCircles(self, crop, circles):
@@ -94,40 +101,50 @@ class CheckImage:
         img = cv2.imread(path)
         crop = img[self.range[0]:self.range[1],
                    self.range[2]:self.range[3], :]
-        saver(crop,"CROP")
+        crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         # Find corner by circle
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
-        saver(draw, "DRAW")
         # corner = self._findLastCircle(circles)
-        y_max = circles[0][0][1]
         y_index = 0
         one = circles[0]
-        one = sorted(one,key=lambda item:item[1])
+        one = sorted(one,key=cmp_to_key(_sortCircle))
+        
+        y_max = circles[0][0][1]
         count = 0
+        ll = 0
+        x_min = circles[0][0][0]
         for c in one:
             c = np.array(c).astype('uint16')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
-            saver(circle, "%d_"%count)
             count+=1
-            if c[1] - y_max > self.radius*2-20:
+            if _abs(c[1] - y_max) > self.radius*2-20:
                 y_index += 1
-            y_max = c[1]
-            print("INDEX %d Y_MAX %d"%( y_index, y_max))
-            if checkColor(circle):
-                result[y_index] += 1
-            else:
-                result[y_index] += -1
-        return result,circles
+                x_min = c[0]
+            y_max = int(c[1])
+            input_index = y_index
             
+            if c[0] == x_min and c[0] < circles[0][0][0]-(self.size[0]-1)*self.radius*2:
+                input_index = ll            
+            if x_min - c[0] > self.radius*3:
+                input_index = ll
+            else:
+                x_min = c[0]
+            if checkColor(circle):
+                result[input_index] += 1
+            else:
+                result[input_index] += -1
+            if result[y_index] >= self.size[0]:
+                ll = y_index
+                
+        return result,circles
 
 if __name__ == "__main__":
-    path1 = "test/type_1.jpeg"
-    path2 = "test/type_2.jpeg"
-    path3 = "test/type_3.jpeg"
-    path4 = "test/type_4.jpeg"
-    checker = CheckImage(4)
-    res,circles = checker.check(path4)
+    path1 = "test/type1.jpg"
+    path2 = "test/type2.jpg"
+    path3 = "test/type3.jpg"
+    checker = CheckImage(3)
+    res,circles = checker.check(path3)
     

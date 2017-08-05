@@ -12,3 +12,7 @@ import matplotlib.pyplot as plt
 
 def saver (var, TAG):
     cv2.imwrite("outer/test_%s.png"%TAG, var)
+
+def is_image_file(filename):
+    return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg"])
+
