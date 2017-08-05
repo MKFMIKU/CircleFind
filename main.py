@@ -37,8 +37,10 @@ class Runthread(QtCore.QThread):
         setpath = main_app.setting['scan']
         respath = main_app.setting['result']
         image_filenames = [join(setpath, x) for x in listdir(setpath) if is_image_file(x)]
-        detecter = DetectImage()            
+        detecter = DetectImage()   
+        count = 0         
         for f in image_filenames:
+            count+=1
             if self.flag == 0:
                 self._signal.emit("停止\n");
                 break;
@@ -46,7 +48,7 @@ class Runthread(QtCore.QThread):
             type = detecter.detect(im)
             checker = CheckImage(type)
             res,_ = checker.check(f)
-            save_result(res)
+            save_result(res,count)
             log = "scanf %s for type %d \n"%(f,type)
             self._signal.emit(log);
     def stop(self):
