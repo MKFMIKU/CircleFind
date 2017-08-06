@@ -8,7 +8,6 @@ Created on Tue Aug  1 20:09:44 2017
 
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
 def saver (var, TAG):
     cv2.imwrite("outer/test_%s.png"%TAG, var)

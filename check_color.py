@@ -7,7 +7,6 @@ Created on Tue Aug  1 20:03:40 2017
 """
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import saver
 
 def checkRed(img):

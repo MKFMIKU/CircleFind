@@ -8,7 +8,6 @@ Created on Tue Aug  1 16:02:39 2017
 import cv2
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import saver
 from check_color import checkColor
 from functools import cmp_to_key

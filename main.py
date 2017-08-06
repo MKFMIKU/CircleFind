@@ -59,6 +59,8 @@ class Runthread(QtCore.QThread):
                     continue
                 im = im[:,0:800,:]
                 type = detecter.detect(im)
+                if type==1:
+                    continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
                 self.ans.extend(save_result(res,count))

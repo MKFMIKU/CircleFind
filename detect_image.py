@@ -8,7 +8,6 @@ Created on Sat Aug  5 15:40:46 2017
 import cv2
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import saver
 from check_color import checkColor
 from functools import cmp_to_key
@@ -39,7 +38,7 @@ class DetectImage:
     def detect(self,img):
         index = 0
         psnr_min = 10000
-        for i in range(3):
+        for i in range(len(self.type)):
             psnr = mse(self.type[i],img)
             if psnr < psnr_min:
                 index = i
