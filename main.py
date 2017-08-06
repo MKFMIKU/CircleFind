@@ -18,6 +18,7 @@ from utils import is_image_file
 from os import listdir
 from os.path import join
 import os
+import pandas as pd
 
 from detect_image import DetectImage
 from check_image import CheckImage
@@ -34,26 +35,40 @@ class Runthread(QtCore.QThread):
     def run(self):
         self.flag = 1
         self._signal.emit("开始\n");
-        setpath = main_app.setting['scan']
-        respath = main_app.setting['result']
-        image_filenames = [join(setpath, x) for x in listdir(setpath) if is_image_file(x)]
+        self.setpath = main_app.setting['scan']
+        self.respath = main_app.setting['result']
+        
         detecter = DetectImage()   
-        count = 0         
-        for f in image_filenames:
-            count+=1
+        count = 0
+        last_filenames = []
+        self.ans = []
+        while True:
+            image_filenames = [join(self.setpath, x) for x in listdir(self.setpath) if is_image_file(x)]
+            need_test = list(set(image_filenames) ^ set(last_filenames))
             if self.flag == 0:
-                self._signal.emit("停止\n");
+                self._signal.emit("停止\n")
+                result = pd.DataFrame(self.ans)
+                result.to_excel(self.respath+"/结果.xlsx")
                 break;
-            im = cv2.imread(f)[:,0:800,:]
-            type = detecter.detect(im)
-            checker = CheckImage(type)
-            res,_ = checker.check(f)
-            save_result(res,count)
-            log = "scanf %s for type %d \n"%(f,type)
-            self._signal.emit(log);
+            if len(need_test)==0:
+                continue
+            for f in need_test:
+                count+=1
+                im = cv2.imread(f)
+                if im is None:
+                    continue
+                im = im[:,0:800,:]
+                type = detecter.detect(im)
+                checker = CheckImage(type)
+                res,_ = checker.check(f)
+                self.ans.extend(save_result(res,count))
+                log = "scanf %s for type %d \n"%(f,type)
+                last_filenames.append(f)
+                self._signal.emit(log)
+                
     def stop(self):
         self.flag = 0
-
+        
 class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self):
         super(SettingApp, self).__init__()
