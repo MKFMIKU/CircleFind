@@ -62,10 +62,6 @@ class Runthread(QtCore.QThread):
                     continue
                 im = im[:,0:800,:]
                 type = detecter.detect(im)
-                print(type)
-                if type==1:
-                    self._signal.emit(" %s 为 第1/2 种 跳过\n"%f)
-                    continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
                 main_app.count+=1
