@@ -31,14 +31,12 @@ class Runthread(QtCore.QThread):
     _signal = pyqtSignal(str)  
     def __init__(self, parent=None):  
         super(Runthread, self).__init__()
-        self.ans = []
-        self.count = 0
 
     def __del__(self):
         self.wait()
 
     def saver(self):
-        result = pd.DataFrame(self.ans)
+        result = pd.DataFrame(main_app.ans)
         result.to_excel(self.respath+"/结果.xlsx")
 
     def run(self):
@@ -70,8 +68,8 @@ class Runthread(QtCore.QThread):
                     continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
-                self.count+=1
-                self.ans.extend(save_result(res,self.count))
+                main_app.count+=1
+                main_app.ans.extend(save_result(res,main_app.count))
                 self.saver()
                 log = "检查 %s 结束 种类为：%d\n"%(f,type)
                 self._signal.emit(log)
@@ -84,6 +82,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainApp, self).__init__()
         self.begin_run = 0
         self.devices = 0
+        self.count = 0
+        self.ans = []
         self.last_filenames = []
         self.setupUi(self)
         self.settingSaver = SettingApp()
