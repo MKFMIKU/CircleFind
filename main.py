@@ -35,17 +35,12 @@ class Runthread(QtCore.QThread):
     def __del__(self):
         self.wait()
 
-    def saver(self):
-        result = pd.DataFrame(main_app.ans)
-        result.to_excel(self.respath+"/结果.xlsx")
-
     def run(self):
         self.flag = 1
         self._signal.emit("开始\n")
         detecter = DetectImage()
         while True:
             self.setpath = main_app.path
-            self.respath = main_app.setting['result']
             image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
             need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
             # need_test = list(set(image_filenames) ^ set(self.last_filenames))
@@ -69,7 +64,6 @@ class Runthread(QtCore.QThread):
                 main_app.count+=1
                 # main_app.ans.extend(save_result(res,main_app.count))
                 main_app.ans.extend(save_result(res,f))
-                self.saver()
                 log = "检查 %s 结束 种类为：%d\n"%(f,type)
                 self._signal.emit(log)
                 main_app.last_filenames.append(f)
@@ -151,6 +145,9 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def stopButtonAction(self):
         print("Stop")
         self.logOuter("停止\n")
+        result = pd.DataFrame(self.ans)
+        result.to_excel(self.setting['result']+"/结果.xlsx")
+        self.logOuter("储存结果于 %s\n"%self.setting['result'])
 
     def settingButtonAction(self):
         print("Setting")
