@@ -49,12 +49,11 @@ class Runthread(QtCore.QThread):
             image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
             need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
             # need_test = list(set(image_filenames) ^ set(self.last_filenames))
-            if self.flag == 0:
-                self._signal.emit("暂停\n")
-                break
             if len(need_test)==0:
                 continue
             for f in need_test:
+                if self.flag == 0:
+                    break
                 self._signal.emit("开始检测 %s\n"%f)
                 im = cv2.imread(f)
                 if im is None:
@@ -62,10 +61,14 @@ class Runthread(QtCore.QThread):
                     continue
                 im = im[:,0:800,:]
                 type = detecter.detect(im)
+                if type==1:
+                    self._signal.emit(" %s 为 第1/2 种 跳过\n"%f)
+                    continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
                 main_app.count+=1
-                main_app.ans.extend(save_result(res,main_app.count))
+                # main_app.ans.extend(save_result(res,main_app.count))
+                main_app.ans.extend(save_result(res,f))
                 self.saver()
                 log = "检查 %s 结束 种类为：%d\n"%(f,type)
                 self._signal.emit(log)
@@ -103,6 +106,13 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.path = self.setting['camera']
     
     def switch_devices(self):
+        _translate = QtCore.QCoreApplication.translate
+        if self.begin_run==1:
+            self.begin_run = 0
+            self.thread.stoper()
+            self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
+            self.label.setText(_translate("MainWindow", "开始"))
+            self.logOuter("暂停\n")
         if self.devices == 0:
             self.devices =1
             self.logOuter("切换为高拍仪\n")
@@ -113,7 +123,6 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def logOuter(self, text):
         """Append text to the QTextEdit."""
-        # Maybe QTextEdit.append() works as well, but this is how I do it:
         cursor = self.textEdit.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
@@ -132,6 +141,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.thread.stoper()
             self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
             self.label.setText(_translate("MainWindow", "开始"))
+            self.logOuter("暂停\n")
         else:
             self.begin_run = 1
             self.thread.start()
@@ -140,7 +150,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             
     def stopButtonAction(self):
         print("Stop")
-        QCoreApplication.quit()
+        self.logOuter("停止\n")
 
     def settingButtonAction(self):
         print("Setting")
