@@ -11,6 +11,7 @@ from PyQt5.QtCore import *
 import sys
 import yaml
 import re
+import datetime
 import cv2
 from save_result import save_result
 from setting import SettingApp
@@ -36,18 +37,18 @@ class Runthread(QtCore.QThread):
         self.wait()
 
     def run(self):
-        self.flag = 1
         self._signal.emit("开始\n")
         detecter = DetectImage()
         while True:
             self.setpath = main_app.path
             image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
             need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
+            need_test = list(set(need_test))
             # need_test = list(set(image_filenames) ^ set(self.last_filenames))
             if len(need_test)==0:
                 continue
             for f in need_test:
-                if self.flag == 0:
+                if main_app.begin_run == 0:
                     break
                 self._signal.emit("开始检测 %s\n"%f)
                 im = cv2.imread(f)
@@ -67,8 +68,6 @@ class Runthread(QtCore.QThread):
                 log = "检查 %s 结束 种类为：%d\n"%(f,type)
                 self._signal.emit(log)
                 main_app.last_filenames.append(f)
-    def stoper(self):
-        self.flag = 0
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -132,7 +131,6 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.thread._signal.connect(self.logOuter)
         if self.begin_run==1:
             self.begin_run = 0
-            self.thread.stoper()
             self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
             self.label.setText(_translate("MainWindow", "开始"))
             self.logOuter("暂停\n")
@@ -145,8 +143,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def stopButtonAction(self):
         print("Stop")
         self.logOuter("停止\n")
+        now = datetime.datetime.now()
+        time = now.strftime('%Y_%m_%d_%H_%M_%S')  
         result = pd.DataFrame(self.ans)
-        result.to_excel(self.setting['result']+"/结果.xlsx")
+        result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
         self.logOuter("储存结果于 %s\n"%self.setting['result'])
 
     def settingButtonAction(self):
