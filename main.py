@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import *  
 import sys
 import yaml
+import re
 import cv2
 from save_result import save_result
 
@@ -43,7 +44,7 @@ class Runthread(QtCore.QThread):
         last_filenames = []
         self.ans = []
         while True:
-            image_filenames = [join(self.setpath, x) for x in listdir(self.setpath) if is_image_file(x)]
+            image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
             need_test = list(set(image_filenames) ^ set(last_filenames))
             if self.flag == 0:
                 self._signal.emit("停止\n")
@@ -53,16 +54,17 @@ class Runthread(QtCore.QThread):
             if len(need_test)==0:
                 continue
             for f in need_test:
-                count+=1
                 im = cv2.imread(f)
                 if im is None:
                     continue
                 im = im[:,0:800,:]
                 type = detecter.detect(im)
+                print(type)
                 if type==1:
                     continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
+                count+=1
                 self.ans.extend(save_result(res,count))
                 log = "scanf %s for type %d \n"%(f,type)
                 last_filenames.append(f)
