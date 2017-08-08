@@ -13,7 +13,7 @@ import yaml
 import re
 import cv2
 from save_result import save_result
-
+from setting import SettingApp
 from utils import is_image_file
 
 from os import listdir
@@ -30,132 +30,122 @@ import gui.outfile
 class Runthread(QtCore.QThread):
     _signal = pyqtSignal(str)  
     def __init__(self, parent=None):  
-        super(Runthread, self).__init__()  
+        super(Runthread, self).__init__()
+        self.ans = []
+        self.count = 0
+
     def __del__(self):
         self.wait()
+
+    def saver(self):
+        result = pd.DataFrame(self.ans)
+        result.to_excel(self.respath+"/结果.xlsx")
+
     def run(self):
         self.flag = 1
-        self._signal.emit("开始\n");
-        self.setpath = main_app.setting['scan']
-        self.respath = main_app.setting['result']
-        
-        detecter = DetectImage()   
-        count = 0
-        last_filenames = []
-        self.ans = []
+        self._signal.emit("开始\n")
+        detecter = DetectImage()
         while True:
+            self.setpath = main_app.path
+            self.respath = main_app.setting['result']
             image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
-            need_test = list(set(image_filenames) ^ set(last_filenames))
+            need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
+            # need_test = list(set(image_filenames) ^ set(self.last_filenames))
             if self.flag == 0:
-                self._signal.emit("停止\n")
-                result = pd.DataFrame(self.ans)
-                result.to_excel(self.respath+"/结果.xlsx")
-                break;
+                self._signal.emit("暂停\n")
+                break
             if len(need_test)==0:
                 continue
             for f in need_test:
+                self._signal.emit("开始检测 %s\n"%f)
                 im = cv2.imread(f)
                 if im is None:
+                    self._signal.emit("读取 %s 错误\n"%f)
                     continue
                 im = im[:,0:800,:]
                 type = detecter.detect(im)
                 print(type)
                 if type==1:
+                    self._signal.emit(" %s 为 第1/2 种 跳过\n"%f)
                     continue
                 checker = CheckImage(type)
                 res,_ = checker.check(f)
-                count+=1
-                self.ans.extend(save_result(res,count))
-                log = "scanf %s for type %d \n"%(f,type)
-                last_filenames.append(f)
+                self.count+=1
+                self.ans.extend(save_result(res,self.count))
+                self.saver()
+                log = "检查 %s 结束 种类为：%d\n"%(f,type)
                 self._signal.emit(log)
-                
-    def stop(self):
+                main_app.last_filenames.append(f)
+    def stoper(self):
         self.flag = 0
-        
-class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
-    def __init__(self):
-        super(SettingApp, self).__init__()
-        self.setupUi(self)
-        self.scanFileButton.clicked.connect(self.scanFileChoose)
-        self.cameraFileButton.clicked.connect(self.cameraFileChoose)
-        self.resultFileButton.clicked.connect(self.resultFileChoose)
-        self.closeButton.clicked.connect(self.closeAction)
-        self.saveButton.clicked.connect(self.saveAction)
-        self.scanFile = ""
-        self.cameraFile = ""
-        self.resultFile = ""
-    
-    def init_ui(self):
-        self.scanFilePath.setText(self.scanFile)
-        self.cameraFilePath.setText(self.cameraFile)
-        self.resultFilePath.setText(self.resultFile)
-        
-    def showEvent(self, event):
-        with open('setting.yml') as f:
-            self.setting = yaml.safe_load(f)
-            self.scanFile = self.setting['scan']
-            self.cameraFile = self.setting['camera']
-            self.resultFile = self.setting['result']
-            self.init_ui()
-            
-    def saveAction(self):
-        data = dict(
-            scan = self.scanFile,
-            camera = self.cameraFile,
-            result = self.resultFile
-        )
-        with open('setting.yml', 'w') as outfile:
-            yaml.dump(data, outfile, default_flow_style=False)
-        self.close()
-        
-    def closeAction(self):
-        self.close()
-        
-    def scanFileChoose(self):
-        self.scanFile = QtWidgets.QFileDialog.getExistingDirectory()
-        self.scanFilePath.setText(self.scanFile)
-        
-    def cameraFileChoose(self):
-        self.cameraFile = QtWidgets.QFileDialog.getExistingDirectory()
-        self.cameraFilePath.setText(self.cameraFile)
-        
-    def resultFileChoose(self):
-        self.resultFile = QtWidgets.QFileDialog.getExistingDirectory()
-        self.resultFilePath.setText(self.resultFile)
-        
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.begin_run = 0
+        self.devices = 0
+        self.last_filenames = []
         self.setupUi(self)
-        
         self.settingSaver = SettingApp()
         self.startButton.clicked.connect(self.startButtonAction)
         self.stopButton.clicked.connect(self.stopButtonAction)
         self.settingButton.clicked.connect(self.settingButtonAction)
+        self.scanButton.clicked.connect(self.switch_devices)
+        self.cameraButton.clicked.connect(self.switch_devices)
+        self._update()
+
+    def _update(self):
         with open('setting.yml') as f:
             self.setting = yaml.safe_load(f)
+        if self.devices == 0:
+            self.scanButton.setStyleSheet("border-image: url(:/new/outer/scan.png)")
+            self.cameraButton.setStyleSheet("border-image: url(:/new/outer/camera_black.png)")
+            self.path = self.setting['scan']
+        else:
+            self.scanButton.setStyleSheet("border-image: url(:/new/outer/scan_off.png)")
+            self.cameraButton.setStyleSheet("border-image: url(:/new/outer/camera.png)")
+            self.path = self.setting['camera']
     
+    def switch_devices(self):
+        if self.devices == 0:
+            self.devices =1
+            self.logOuter("切换为高拍仪\n")
+        else:
+            self.devices =0
+            self.logOuter("切换为扫描仪\n")
+        self._update()
+
     def logOuter(self, text):
         """Append text to the QTextEdit."""
         # Maybe QTextEdit.append() works as well, but this is how I do it:
-        cursor = self.textBrowser.textCursor()
+        cursor = self.textEdit.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
-        self.textBrowser.setTextCursor(cursor)
-        self.textBrowser.ensureCursorVisible()
+        self.textEdit.setTextCursor(cursor)
+        self.textEdit.ensureCursorVisible()
         
     def startButtonAction(self):
+        _translate = QtCore.QCoreApplication.translate
         print("Start")
+        self._update()
+        self.stopButton.setStyleSheet("border-image: url(:/new/outer/stop.png)")
         self.thread = Runthread()
         self.thread._signal.connect(self.logOuter)
-        self.thread.start()
-        
+        if self.begin_run==1:
+            self.begin_run = 0
+            self.thread.stoper()
+            self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
+            self.label.setText(_translate("MainWindow", "开始"))
+        else:
+            self.begin_run = 1
+            self.thread.start()
+            self.startButton.setStyleSheet("border-image: url(:/new/outer/pause.png)")
+            self.label.setText(_translate("MainWindow", "暂停"))
+            
     def stopButtonAction(self):
         print("Stop")
-        self.thread.stop()
-        
+        QCoreApplication.quit()
+
     def settingButtonAction(self):
         print("Setting")
         self.settingSaver.show()
