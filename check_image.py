@@ -31,7 +31,7 @@ class CheckImage:
     def _checkType(self, type):
         if type==1:
             self.radius = 30
-            self.size = [6,40]
+            self.size = [6,52]
             self.range = [400,3500,850,1300]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
@@ -137,8 +137,8 @@ class CheckImage:
                 result[input_index] += -1
             if result[y_index] >= self.size[0]:
                 ll = y_index
-                
-        return result,circles
+        err = 0
+        return result,circles,err
 
 if __name__ == "__main__":
     path1 = "test/type1.jpg"

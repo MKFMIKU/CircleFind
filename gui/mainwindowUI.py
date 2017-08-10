@@ -94,7 +94,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralWidget)
         self.pushButton_2.setMinimumSize(QtCore.QSize(50, 50))
-        self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down.png)")
+        self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down_black.png)")
         self.pushButton_2.setText("")
         self.pushButton_2.setObjectName("pushButton_2")
         self.verticalLayout_4.addWidget(self.pushButton_2)

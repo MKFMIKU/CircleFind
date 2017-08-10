@@ -29,7 +29,7 @@ from gui.dialogUI import Ui_Dialog
 import gui.outfile
 
 class Runthread(QtCore.QThread):
-    _signal = pyqtSignal(str)  
+    _signal = pyqtSignal(str)
     def __init__(self, parent=None):  
         super(Runthread, self).__init__()
 
@@ -37,7 +37,6 @@ class Runthread(QtCore.QThread):
         self.wait()
 
     def run(self):
-        self._signal.emit("开始\n")
         detecter = DetectImage()
         while True:
             self.setpath = main_app.path
@@ -48,26 +47,30 @@ class Runthread(QtCore.QThread):
             if len(need_test)==0:
                 continue
             for f in need_test:
-                if main_app.begin_run == 0:
+                if main_app.begin_run == 1:
+                    self._signal.emit("开始检测 %s"%f)
+                    im = cv2.imread(f)
+                    if im is None:
+                        self._signal.emit("读取 %s 错误"%f)
+                        continue
+                    im = im[:,0:800,:]
+                    type = detecter.detect(im)
+                    checker = CheckImage(type)
+                    res,_,err = checker.check(f)
+                    if err==1:
+                        self._signal.emit("%s 图片错误 无法识别"%f)
+                        main_app.last_filenames.append(f)
+                        continue
+                    main_app.count+=1
+                    # main_app.ans.extend(save_result(res,main_app.count))
+                    main_app.ans.extend(save_result(res,f))
+                    log = "检查 %s 结束 种类为：%d"%(f,type)
+                    self._signal.emit(log)
+                    main_app.last_filenames.append(f)
+                else:
                     break
-                self._signal.emit("开始检测 %s\n"%f)
-                im = cv2.imread(f)
-                if im is None:
-                    self._signal.emit("读取 %s 错误\n"%f)
-                    continue
-                im = im[:,0:800,:]
-                type = detecter.detect(im)
-                if type==1:
-                    self._signal.emit(" %s 为 第1/2 种 跳过\n"%f)
-                    continue
-                checker = CheckImage(type)
-                res,_ = checker.check(f)
-                main_app.count+=1
-                # main_app.ans.extend(save_result(res,main_app.count))
-                main_app.ans.extend(save_result(res,f))
-                log = "检查 %s 结束 种类为：%d\n"%(f,type)
-                self._signal.emit(log)
-                main_app.last_filenames.append(f)
+            if  main_app.begin_run == 0:
+                break
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -79,6 +82,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.last_filenames = []
         self.setupUi(self)
         self.settingSaver = SettingApp()
+        self.textEdit.setReadOnly(True)
         self.startButton.clicked.connect(self.startButtonAction)
         self.stopButton.clicked.connect(self.stopButtonAction)
         self.settingButton.clicked.connect(self.settingButtonAction)
@@ -102,24 +106,23 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         _translate = QtCore.QCoreApplication.translate
         if self.begin_run==1:
             self.begin_run = 0
-            self.thread.stoper()
             self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
             self.label.setText(_translate("MainWindow", "开始"))
-            self.logOuter("暂停\n")
         if self.devices == 0:
             self.devices =1
-            self.logOuter("切换为高拍仪\n")
+            self.logOuter("切换为高拍仪")
         else:
             self.devices =0
-            self.logOuter("切换为扫描仪\n")
+            self.logOuter("切换为扫描仪")
         self._update()
 
-    def logOuter(self, text):
-        """Append text to the QTextEdit."""
+    def logOuter(self, text, type=0):
         cursor = self.textEdit.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
-        cursor.insertText(text)
-        self.textEdit.setTextCursor(cursor)
+        if type==0:
+            cursor.insertHtml('<p style="color:black">'+text+'</p><br>')
+        else:
+            cursor.insertHtml('<p style="color:red">'+text+'</p><br>')
         self.textEdit.ensureCursorVisible()
         
     def startButtonAction(self):
@@ -130,11 +133,12 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.thread = Runthread()
         self.thread._signal.connect(self.logOuter)
         if self.begin_run==1:
+            self.logOuter("暂停\n", 1)
             self.begin_run = 0
             self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
             self.label.setText(_translate("MainWindow", "开始"))
-            self.logOuter("暂停\n")
         else:
+            self.logOuter("开始\n", 1)
             self.begin_run = 1
             self.thread.start()
             self.startButton.setStyleSheet("border-image: url(:/new/outer/pause.png)")
@@ -142,12 +146,13 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             
     def stopButtonAction(self):
         print("Stop")
-        self.logOuter("停止\n")
+        self.logOuter("停止\n", 1)
+        self.begin_run = 0
         now = datetime.datetime.now()
-        time = now.strftime('%Y_%m_%d_%H_%M_%S')  
+        time = now.strftime('%Y_%m_%d_%H_%M_%S')
         result = pd.DataFrame(self.ans)
         result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
-        self.logOuter("储存结果于 %s\n"%self.setting['result'])
+        self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 
     def settingButtonAction(self):
         print("Setting")
