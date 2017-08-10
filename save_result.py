@@ -15,6 +15,8 @@ def save_result(res,count):
             c = ['红',abs(r)]
         elif r<0:
             c = ['蓝',abs(r)]
+            if r == -1000:
+                c = ['该图片系统无法识别']
         else:
             pass
         if r!=0 and f==1:

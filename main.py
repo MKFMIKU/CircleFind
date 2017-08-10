@@ -60,12 +60,10 @@ class Runthread(QtCore.QThread):
                     res,_,err = checker.check(f)
                     if err==1:
                         self._signal.emit("%s 图片错误 无法识别"%f)
-                        log += "识别错误"
                         res = [-1000]
                     else:
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
                     main_app.count+=1
-                    print( main_app.ans)
                     main_app.ans.extend(save_result(res,log))
                     main_app.last_filenames.append(f)
                 else:
@@ -83,6 +81,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.last_filenames = []
         self.setupUi(self)
         self.settingSaver = SettingApp()
+        self.thread = Runthread()
+        self.thread._signal.connect(self.logOuter)
         self.textEdit.setReadOnly(True)
         self.startButton.clicked.connect(self.startButtonAction)
         self.stopButton.clicked.connect(self.stopButtonAction)
@@ -133,8 +133,6 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         print("Start")
         self._update()
         self.stopButton.setStyleSheet("border-image: url(:/new/outer/stop.png)")
-        self.thread = Runthread()
-        self.thread._signal.connect(self.logOuter)
         if self.begin_run==1:
             self.logOuter("暂停\n", 1)
             self.begin_run = 0
