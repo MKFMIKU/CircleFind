@@ -157,6 +157,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     global main_app
     main_app = MainApp()
-    main_app.setFixedSize(main_app.width(), main_app.height());    
     main_app.show()
     sys.exit(app.exec_())
