@@ -47,6 +47,7 @@ class Runthread(QtCore.QThread):
             if len(need_test)==0:
                 continue
             for f in need_test:
+                log = f
                 if main_app.begin_run == 1:
                     self._signal.emit("开始检测 %s"%f)
                     im = cv2.imread(f)
@@ -59,12 +60,13 @@ class Runthread(QtCore.QThread):
                     res,_,err = checker.check(f)
                     if err==1:
                         self._signal.emit("%s 图片错误 无法识别"%f)
-                        res = []
-                        f += "识别错误"
+                        log += "识别错误"
+                        res = [-1000]
                     else:
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
                     main_app.count+=1
-                    main_app.ans.extend(save_result(res,f))
+                    print( main_app.ans)
+                    main_app.ans.extend(save_result(res,log))
                     main_app.last_filenames.append(f)
                 else:
                     break
