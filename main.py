@@ -59,13 +59,12 @@ class Runthread(QtCore.QThread):
                     res,_,err = checker.check(f)
                     if err==1:
                         self._signal.emit("%s 图片错误 无法识别"%f)
-                        main_app.last_filenames.append(f)
-                        continue
+                        res = []
+                        f += "识别错误"
+                    else:
+                        self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
                     main_app.count+=1
-                    # main_app.ans.extend(save_result(res,main_app.count))
                     main_app.ans.extend(save_result(res,f))
-                    log = "检查 %s 结束 种类为：%d"%(f,type)
-                    self._signal.emit(log)
                     main_app.last_filenames.append(f)
                 else:
                     break
@@ -119,6 +118,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def logOuter(self, text, type=0):
         cursor = self.textEdit.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
+        if re.search(r"错误",text):
+            type = 1
         if type==0:
             cursor.insertHtml('<p style="color:black">'+text+'</p><br>')
         else:

@@ -138,6 +138,10 @@ class CheckImage:
             if result[y_index] >= self.size[0]:
                 ll = y_index
         err = 0
+        for i in range(0, y_index-2):
+            if result[i]+result[i+2] > 12:
+                err = 1
+                break
         return result,circles,err
 
 if __name__ == "__main__":
