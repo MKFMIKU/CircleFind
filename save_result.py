@@ -5,8 +5,13 @@ Created on Fri Aug  4 15:02:07 2017
 
 @author: kangfu
 """
+import numpy as np
 
-def save_result(res,count):
+def save_result(res,log,t):
+    if t==1:
+        res[0][0] = np.append(res[0][0], [log])
+        res[1][0] = np.append(res[1][0], [log])
+        return res   
     f = 1
     ans = []
     for r in res:
@@ -20,7 +25,7 @@ def save_result(res,count):
         else:
             pass
         if r!=0 and f==1:
-            c.append(count)
+            c.append(log)
             f=0
         if r!=0:
             ans.append(c)

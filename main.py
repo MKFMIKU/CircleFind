@@ -46,6 +46,7 @@ class Runthread(QtCore.QThread):
             # need_test = list(set(image_filenames) ^ set(self.last_filenames))
             if len(need_test)==0:
                 continue
+            need_test.sort()
             for f in need_test:
                 log = f
                 if main_app.begin_run == 1:
@@ -54,17 +55,27 @@ class Runthread(QtCore.QThread):
                     if im is None:
                         self._signal.emit("读取 %s 错误"%f)
                         continue
-                    im = im[:,0:800,:]
-                    type = detecter.detect(im)
-                    checker = CheckImage(type)
-                    res,_,err = checker.check(f)
+                    type = detecter.detect(im[0:3500,0:800,:])
+                    try:
+                        checker = CheckImage(type)
+                        err,res = checker.check(f,main_app.up_down)
+                    except Exception as e:
+                        print(f)
+                        print(e)
+                        self._signal.emit("内部识别 %s 为 %d 错误"%(f,type))
+                        main_app.last_filenames.append(f)
+                        break
                     if err==1:
                         self._signal.emit("%s 图片错误 无法识别"%f)
                         res = [-1000]
+                    elif err==2:
+                        self._signal.emit("%s 图片下栏无法识别"%f)
                     else:
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
-                    main_app.count+=1
-                    main_app.ans.extend(save_result(res,log))
+                        if main_app.up_down == 0:
+                            main_app.up_ans.extend(save_result(res,log,0))
+                        else:
+                            main_app.down_ans.extend(save_result(res,log,1))
                     main_app.last_filenames.append(f)
                 else:
                     break
@@ -74,12 +85,9 @@ class Runthread(QtCore.QThread):
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
-        self.begin_run = 0
-        self.devices = 0
-        self.count = 0
-        self.ans = []
-        self.last_filenames = []
+        self.pre()
         self.setupUi(self)
+
         self.settingSaver = SettingApp()
         self.thread = Runthread()
         self.thread._signal.connect(self.logOuter)
@@ -89,11 +97,21 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settingButton.clicked.connect(self.settingButtonAction)
         self.scanButton.clicked.connect(self.switch_devices)
         self.cameraButton.clicked.connect(self.switch_devices)
+        self.pushButton.clicked.connect(self.switch_up_down)
+        self.pushButton_2.clicked.connect(self.switch_up_down)
         self._update()
 
-    def _update(self):
+    def pre(self):
+        self.begin_run = 0
+        self.devices = 0    #设备切换
+        self.up_down = 0    #上栏或者下栏切换
+        self.last_filenames = []
+        self.up_ans = []
+        self.down_ans = []
         with open('setting.yml') as f:
             self.setting = yaml.safe_load(f)
+
+    def _update(self):
         if self.devices == 0:
             self.scanButton.setStyleSheet("border-image: url(:/new/outer/scan.png)")
             self.cameraButton.setStyleSheet("border-image: url(:/new/outer/camera_black.png)")
@@ -102,7 +120,29 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.scanButton.setStyleSheet("border-image: url(:/new/outer/scan_off.png)")
             self.cameraButton.setStyleSheet("border-image: url(:/new/outer/camera.png)")
             self.path = self.setting['camera']
+
+        if self.up_down == 0:
+            self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down_black.png)")
+            self.pushButton.setStyleSheet("border-image: url(:/new/outer/up.png)")
+        else:
+            self.pushButton.setStyleSheet("border-image: url(:/new/outer/up_black.png)")
+            self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down.png)")
     
+    def switch_up_down(self):
+        _translate = QtCore.QCoreApplication.translate
+        if self.begin_run==1:
+            self.begin_run = 0
+            self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
+            self.label.setText(_translate("MainWindow", "开始"))
+
+        if self.up_down == 1:
+            self.up_down = 0 
+            self.logOuter("切换为上栏",1)
+        else:
+            self.up_down = 1
+            self.logOuter("切换为下栏",1)
+        self._update()
+
     def switch_devices(self):
         _translate = QtCore.QCoreApplication.translate
         if self.begin_run==1:
@@ -111,10 +151,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label.setText(_translate("MainWindow", "开始"))
         if self.devices == 0:
             self.devices =1
-            self.logOuter("切换为高拍仪")
+            self.logOuter("切换为高拍仪",1)
         else:
             self.devices =0
-            self.logOuter("切换为扫描仪")
+            self.logOuter("切换为扫描仪",1)
         self._update()
 
     def logOuter(self, text, type=0):

@@ -8,6 +8,7 @@ Created on Sat Aug  5 15:40:46 2017
 import cv2
 import math
 import numpy as np
+from skimage.measure import compare_ssim,compare_psnr
 from utils import saver
 from check_color import checkColor
 from functools import cmp_to_key
@@ -30,24 +31,28 @@ def mse(imageA, imageB):
 class DetectImage:
     def __init__(self):
         self.type = [
-                cv2.imread(path1)[:,0:800,:],
-                cv2.imread(path2)[:,0:800,:],
-                cv2.imread(path3)[:,0:800,:],
-                ]
+                cv2.imread(path1)[0:3500,0:800,:],
+                cv2.imread(path2)[0:3500,0:800,:],
+                cv2.imread(path3)[0:3500,0:800,:],
+        ]
         
     def detect(self,img):
         index = 0
-        psnr_min = 10000
+        ssim_min = -1
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         for i in range(len(self.type)):
-            psnr = mse(self.type[i],img)
-            if psnr < psnr_min:
+            d = cv2.cvtColor(self.type[i], cv2.COLOR_BGR2GRAY)
+            ssim = compare_psnr(d,img)
+            # saver(d,i)
+            # print(ssim, index)
+            if ssim_min < ssim:
                 index = i
-                psnr_min = psnr
+                ssim_min = ssim
         return index+1
-           
          
 if __name__ == "__main__":
-    im = cv2.imread("test/test1.jpg")[:,0:800,:]
+    im = cv2.imread("../img/2017-08-11 (1) 0006.jpg")[0:3500,0:800,:]
+    saver(im,"i")
     detecter = DetectImage()
     type = detecter.detect(im)
     print(type)

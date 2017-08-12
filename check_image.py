@@ -9,14 +9,20 @@ import cv2
 import math
 import numpy as np
 from utils import saver
-from check_color import checkColor
+from check_color import checkRed,checkBlue,checkColor
 from functools import cmp_to_key
 
 def _sortCircle(a,b):
-    if abs(a[1]-b[1]) > 40:
-        return a[1]-b[1]
-    else:
+    if abs(a[1]-b[1]) < 40:
         return b[0]-a[0]
+    else:
+        return a[1]-b[1]
+    
+def _sortSmall(a,b):
+    if abs(a[1]-b[1]) < 30:
+        return a[0]-b[0]
+    else:
+        return a[1]-b[1]
     
 def _abs(a):
     if a<0:
@@ -26,20 +32,21 @@ def _abs(a):
         
 class CheckImage:
     def __init__(self, type=1):
+        self.type = type
         self._checkType(type)
         
     def _checkType(self, type):
         if type==1:
             self.radius = 30
             self.size = [6,52]
-            self.range = [400,3500,850,1300]
+            self.range = [500,3500,850,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,40,20,40]
+            self.cycleFilter = [50,30,20,30]
         if type==2:
             self.radius = 35
             self.size = [6,50]
-            self.range = [50,3500,350,900]
+            self.range = [50,3500,400,1000]
             self.widthFilter = [2800,3500]
             self.threshFilter = [225,255]
             self.cycleFilter = [50,40,20,40]
@@ -64,19 +71,6 @@ class CheckImage:
         d1, d2 = (p0-p1).astype('float'), (p2-p1).astype('float')
         return abs( np.dot(d1, d2) / np.sqrt( np.dot(d1, d1)*np.dot(d2, d2) ) )
     
-    def _checkSquare(self, cnt):
-        cnt_len = cv2.arcLength(cnt, True)
-        cnt = cv2.approxPolyDP(cnt, 0.02*cnt_len, True)
-        if len(cnt) == 4 and cv2.contourArea(cnt) > 1000 and cv2.isContourConvex(cnt):
-            cnt = cnt.reshape(-1, 2)
-            max_cos = np.max([self._angle_cos( cnt[i], cnt[(i+1) % 4], cnt[(i+2) % 4] ) for i in range(4)])
-            if max_cos < 0.1:
-                w = cnt[1][1]-cnt[0][1]
-                if w>self.widthFilter[0] and w<self.widthFilter[1]:
-                    self.square = cnt
-                    return True
-        return False
-    
     def _findCircles(self, thresh):
         circles = cv2.HoughCircles(thresh,cv2.HOUGH_GRADIENT,1,20,
                                    param1=self.cycleFilter[0],
@@ -94,30 +88,84 @@ class CheckImage:
             if circle[1]<last_h:
                 last_h = circle[1]
         return [last_w,last_h]
+    
+    def _checkPont(self,im,p):
+        mask_r = checkRed(im)
+        mask_b = checkBlue(im)
+        if p==0:
+            # UP RED
+            if mask_r.mean()>140:
+                return 1
+            if mask_r.mean() > 60 and mask_b.mean() > 40:
+                return 1
+        else:
+            if mask_b.mean() > 140:
+                return 2
+            if mask_r.mean() > 40 and mask_b.mean() > 60:
+                return 2
+        return 0
             
-    def check(self, path):
+            
+    def check_down(self,path):
+        colors_check = np.zeros((15,6), dtype=np.int)
+        points_check = np.zeros((15,6), dtype=np.int)
+        img = cv2.imread(path)
+        crop = img[400:1500,1300:1750]
+        crop = cv2.flip(crop,-1)
+        crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
+                                   param1=50,
+                                   param2=30,
+                                   minRadius=15,
+                                   maxRadius=35)
+        one = circles[0]
+        one = sorted(one,key=cmp_to_key(_sortSmall))
+        radius = 30
+        count = 0
+        points = 0
+        for c in one:
+            c = np.array(c).astype('int')
+            circle = crop[c[1]-radius:c[1]+radius,
+                          c[0]-radius:c[0]+radius,:]
+            up_circle = circle[0:radius,radius:2*radius]
+            down_circle = circle[radius:2*radius,0:radius]
+            saver(up_circle,"U_%d"%count)
+            saver(down_circle, "D_%d"%count)
+            color = checkColor(circle)
+            points = self._checkPont(up_circle,0)+self._checkPont(down_circle,1)
+            colors_check[count//6][count%6] = color
+            points_check[count//6][count%6] = points
+            count+=1
+        return colors_check,points_check
+        
+
+    def check_up(self,path):
         result = np.zeros((self.size[1]), dtype=np.int)
         img = cv2.imread(path)
         crop = img[self.range[0]:self.range[1],
                    self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        # Find corner by circle
         circles = self._findCircles(crop_gray)
-        draw = self._drawCircles(crop, circles)
-        # corner = self._findLastCircle(circles)
+        # draw = self._drawCircles(crop, circles)
+        # saver(draw,"Dr_%d"%iter)
         y_index = 0
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
-        
-        y_max = circles[0][0][1]
+        y_max = one[0][1]
         count = 0
         ll = 0
-        x_min = circles[0][0][0]
+        x_min = one[0][0]
+        outer_side = 3*self.radius
         for c in one:
-            c = np.array(c).astype('uint16')
+            c = np.array(c).astype('int')
+            # if wrong
+            if crop.shape[1]-c[0]<2*self.radius and self.type==1:
+                continue
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
+            color = checkColor(circle)
+            # saver(circle,count)
             count+=1
             if _abs(c[1] - y_max) > self.radius*2-20:
                 y_index += 1
@@ -125,29 +173,47 @@ class CheckImage:
             y_max = int(c[1])
             input_index = y_index
             
-            if c[0] == x_min and c[0] < circles[0][0][0]-(self.size[0]-1)*self.radius*2:
+            if c[0] == x_min and c[0] < outer_side:
                 input_index = ll            
             if x_min - c[0] > self.radius*3:
                 input_index = ll
             else:
                 x_min = c[0]
-            if checkColor(circle):
+            if color==1:
                 result[input_index] += 1
             else:
                 result[input_index] += -1
-            if result[y_index] >= self.size[0]:
+            if abs(result[y_index]) >= self.size[0]:
                 ll = y_index
+            # print("DEBUG",c, color)
         err = 0
         for i in range(0, y_index-2):
-            if result[i]+result[i+2] > 12:
+            if abs(result[i]>6) and abs(result[i+2]>6):
                 err = 1
                 break
-        return result,circles,err
+        return result,one,err
+    
+    def check(self, path, up_down):
+        err = 0
+        result = []
+        if up_down==0:
+            #上栏
+            result,_,err  = self.check_up(path)
+        else:
+            #下栏
+            if self.type != 1:
+                err = 2
+            else:
+                result = [colors_check,points_check]  = self.check_down(path)
+        return err,result
+
 
 if __name__ == "__main__":
     path1 = "test/type1.jpg"
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
-    checker = CheckImage(3)
-    res,circles = checker.check(path3)
+    test_err = "test/err.jpg"
+    path = "../img/2017-08-11 (3) 0016.jpg"
+    checker = CheckImage(1)
+    err,result = checker.check(path,1)
     
