@@ -21,12 +21,20 @@ from os import listdir
 from os.path import join
 import os
 import pandas as pd
-
+import openpyxl
 from detect_image import DetectImage
 from check_image import CheckImage
 from gui.mainwindowUI import Ui_MainWindow
 from gui.dialogUI import Ui_Dialog
 import gui.outfile
+
+
+def boldExcel(path):
+    font = openpyxl.styles.Font(name='Times New Roman',bold=True)
+    _excel = openpyxl.load_workbook(path)
+    for i in _excel['Sheet1']['B']:
+        i.font = font
+    _excel.save(path)
 
 class Runthread(QtCore.QThread):
     _signal = pyqtSignal(str)
@@ -62,9 +70,7 @@ class Runthread(QtCore.QThread):
                     except Exception as e:
                         print(f)
                         print(e)
-                        self._signal.emit("内部识别 %s 为 %d 错误"%(f,type))
-                        main_app.last_filenames.append(f)
-                        break
+                        err = 1
                     if err==1:
                         self._signal.emit("%s 图片错误 无法识别"%f)
                         res = [-1000]
@@ -193,14 +199,20 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.begin_run = 0
         now = datetime.datetime.now()
         time = now.strftime('%Y_%m_%d_%H_%M_%S')
+        
         if self.up_down==0:
             result = pd.DataFrame(self.up_ans)
             result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
+            boldExcel(self.setting['result']+"/结果_%s.xlsx"%time)
         else:
             result_A = pd.DataFrame(self.down_ans[0])
             result_B = pd.DataFrame(self.down_ans[1])
             result_A.to_excel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
             result_B.to_excel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
+            
+            boldExcel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
+            boldExcel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
+            
         self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 
     def settingButtonAction(self):

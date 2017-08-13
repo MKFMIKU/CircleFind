@@ -107,8 +107,8 @@ class CheckImage:
             
             
     def check_down(self,path):
-        colors_check = np.zeros((15,7), dtype=np.int)
-        points_check = np.zeros((15,7), dtype=np.int)
+        colors_check = np.zeros((15,6), dtype=np.int)
+        points_check = np.zeros((15,6), dtype=np.int)
         img = cv2.imread(path)
         crop = img[400:1500,1300:1750]
         crop = cv2.flip(crop,-1)
@@ -136,6 +136,10 @@ class CheckImage:
             colors_check[count//6][count%6] = color
             points_check[count//6][count%6] = points
             count+=1
+        for c in range(count,90):
+             colors_check[count//6][count%6] = -1
+             points_check[count//6][count%6] = -1
+             count+=1
         return colors_check,points_check
         
 
@@ -148,7 +152,7 @@ class CheckImage:
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
-        saver(draw,"D")
+        # saver(draw,"D")
         y_index = 0
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -203,7 +207,8 @@ class CheckImage:
         result = []
         if up_down==0:
             #上栏
-            result,_,err  = self.check_up(path)
+            result,_,_err  = self.check_up(path)
+            err = _err
         else:
             #下栏
             if self.type != 1:
