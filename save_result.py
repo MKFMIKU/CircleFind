@@ -14,9 +14,9 @@ def save_result(res,log,t):
         a.append(log)
         b.append(log)
         for i in res[0]:
-            a.append(i.reverse())
+            a.append(np.flip(i,0))
         for i in res[1]:
-            b.append(i.reverse())
+            b.append(np.flip(i,0))
         return a,b  
     f = 1
     ans = []
