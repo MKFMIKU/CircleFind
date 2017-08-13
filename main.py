@@ -191,7 +191,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.begin_run = 0
         now = datetime.datetime.now()
         time = now.strftime('%Y_%m_%d_%H_%M_%S')
-        result = pd.DataFrame(self.ans)
+        if self.up_down==0:
+            result = pd.DataFrame(self.up_ans)
+        else:
+            result = pd.DataFrame(self.down_ans)
         result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
         self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 

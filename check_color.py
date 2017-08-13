@@ -37,6 +37,14 @@ def checkGreen(img):
 def checkColor(img):
     blue_rate = checkBlue(img).mean()
     red_rate = checkRed(img).mean()
+    if red_rate>blue_rate:
+        return 1
+    else:
+        return 2
+
+def checkAllColor(img):
+    blue_rate = checkBlue(img).mean()
+    red_rate = checkRed(img).mean()
     green_rate = checkGreen(img).mean()
     if blue_rate>red_rate and blue_rate>green_rate:
         return 2

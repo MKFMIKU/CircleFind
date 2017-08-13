@@ -147,8 +147,8 @@ class CheckImage:
         crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
-        # draw = self._drawCircles(crop, circles)
-        # saver(draw,"Dr_%d"%iter)
+        draw = self._drawCircles(crop, circles)
+        saver(draw,"D")
         y_index = 0
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -157,15 +157,16 @@ class CheckImage:
         ll = 0
         x_min = one[0][0]
         outer_side = 3*self.radius
+        err = 0
         for c in one:
             c = np.array(c).astype('int')
             # if wrong
-            if crop.shape[1]-c[0]<2*self.radius and self.type==1:
+            if crop.shape[1]-c[0]<2*self.radius and self.type==1 and c[0]==one[0][0]:
                 continue
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
             color = checkColor(circle)
-            # saver(circle,count)
+            saver(circle,count)
             count+=1
             if _abs(c[1] - y_max) > self.radius*2-20:
                 y_index += 1
@@ -173,20 +174,24 @@ class CheckImage:
             y_max = int(c[1])
             input_index = y_index
             
-            if c[0] == x_min and c[0] < outer_side:
+            if c[0] == x_min and abs(c[0]-outer_side)<self.radius:
                 input_index = ll            
             if x_min - c[0] > self.radius*3:
                 input_index = ll
             else:
                 x_min = c[0]
+            add = 0
             if color==1:
-                result[input_index] += 1
+                add = 1
             else:
-                result[input_index] += -1
+                add = -1
+            if abs(result[input_index]==5) and abs(result[input_index]+add) < abs(result[input_index]):
+                input_index = ll
+            result[input_index] += add
             if abs(result[y_index]) >= self.size[0]:
                 ll = y_index
+                outer_side = c[0]
             # print("DEBUG",c, color)
-        err = 0
         for i in range(0, y_index-2):
             if abs(result[i]>6) and abs(result[i+2]>6):
                 err = 1
@@ -213,7 +218,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = "../img/2017-08-11 (3) 0016.jpg"
+    path = "../img/2017-08-11 (1) 0015.jpg"
     checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    err,result = checker.check(path,0)
     
