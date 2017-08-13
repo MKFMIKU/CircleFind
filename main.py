@@ -76,14 +76,15 @@ class Runthread(QtCore.QThread):
                         res = [-1000]
                     elif err==2:
                         self._signal.emit("%s 图片下栏无法识别"%f)
+                        res = [-1000]
                     else:
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
-                        if main_app.up_down == 0:
-                            main_app.up_ans.extend(save_result(res,log,0))
-                        else:
-                            a,b = save_result(res,log,1)
-                            main_app.down_ans[0].extend(a)
-                            main_app.down_ans[1].extend(b)
+                    if main_app.up_down == 0:
+                        main_app.up_ans.extend(save_result(res,log,0))
+                    else:
+                        a,b = save_result(res,log,1)
+                        main_app.down_ans[0].extend(a)
+                        main_app.down_ans[1].extend(b)
                     main_app.last_filenames.append(f)
                 else:
                     break

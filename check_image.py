@@ -165,7 +165,8 @@ class CheckImage:
         for c in one:
             c = np.array(c).astype('int')
             # if wrong
-            if crop.shape[1]-c[0]<2*self.radius and self.type==1 and c[0]==one[0][0]:
+            if crop.shape[1]-c[0]<self.radius and self.type==1:
+                err = 1
                 continue
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
@@ -197,7 +198,7 @@ class CheckImage:
                 outer_side = c[0]
             # print("DEBUG",c, color)
         for i in range(0, y_index-2):
-            if abs(result[i]>6) and abs(result[i+2]>6):
+            if abs(result[i]>=6) and abs(result[i+2]>=6):
                 err = 1
                 break
         return result,one,err

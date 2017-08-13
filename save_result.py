@@ -48,7 +48,6 @@ def save_result(res,log,t):
                 c = [count,'蓝',abs(r)]
             if r == -1000:
                 c = ['该图片系统无法识别']
-                break
             if r!=0:
                 ans.append(c)
         ans.append([""])
