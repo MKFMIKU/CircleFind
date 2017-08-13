@@ -9,9 +9,15 @@ import numpy as np
 
 def save_result(res,log,t):
     if t==1:
-        res[0][0] = np.append(res[0][0], [log])
-        res[1][0] = np.append(res[1][0], [log])
-        return res   
+        a = []
+        b = []
+        a.append(log)
+        b.append(log)
+        for i in res[0]:
+            a.append(i.reverse())
+        for i in res[1]:
+            b.append(i.reverse())
+        return a,b  
     f = 1
     ans = []
     for r in res:

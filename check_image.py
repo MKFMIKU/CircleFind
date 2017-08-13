@@ -9,7 +9,7 @@ import cv2
 import math
 import numpy as np
 from utils import saver
-from check_color import checkRed,checkBlue,checkColor
+from check_color import checkRed,checkBlue,checkColor,checkAllColor
 from functools import cmp_to_key
 
 def _sortCircle(a,b):
@@ -107,8 +107,8 @@ class CheckImage:
             
             
     def check_down(self,path):
-        colors_check = np.zeros((15,6), dtype=np.int)
-        points_check = np.zeros((15,6), dtype=np.int)
+        colors_check = np.zeros((15,7), dtype=np.int)
+        points_check = np.zeros((15,7), dtype=np.int)
         img = cv2.imread(path)
         crop = img[400:1500,1300:1750]
         crop = cv2.flip(crop,-1)
@@ -131,7 +131,7 @@ class CheckImage:
             down_circle = circle[radius:2*radius,0:radius]
             saver(up_circle,"U_%d"%count)
             saver(down_circle, "D_%d"%count)
-            color = checkColor(circle)
+            color = checkAllColor(circle)
             points = self._checkPont(up_circle,0)+self._checkPont(down_circle,1)
             colors_check[count//6][count%6] = color
             points_check[count//6][count%6] = points

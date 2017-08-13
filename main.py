@@ -75,7 +75,9 @@ class Runthread(QtCore.QThread):
                         if main_app.up_down == 0:
                             main_app.up_ans.extend(save_result(res,log,0))
                         else:
-                            main_app.down_ans.extend(save_result(res,log,1))
+                            a,b = save_result(res,log,1)
+                            main_app.down_ans[0].extend(a)
+                            main_app.down_ans[1].extend(b)
                     main_app.last_filenames.append(f)
                 else:
                     break
@@ -107,7 +109,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.up_down = 0    #上栏或者下栏切换
         self.last_filenames = []
         self.up_ans = []
-        self.down_ans = []
+        self.down_ans = [[],[]]
         with open('setting.yml') as f:
             self.setting = yaml.safe_load(f)
 
@@ -193,9 +195,12 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         time = now.strftime('%Y_%m_%d_%H_%M_%S')
         if self.up_down==0:
             result = pd.DataFrame(self.up_ans)
+            result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
         else:
-            result = pd.DataFrame(self.down_ans)
-        result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
+            result_A = pd.DataFrame(self.down_ans[0])
+            result_B = pd.DataFrame(self.down_ans[1])
+            result_A.to_excel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
+            result_B.to_excel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
         self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 
     def settingButtonAction(self):
