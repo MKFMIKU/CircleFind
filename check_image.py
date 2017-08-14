@@ -53,7 +53,7 @@ class CheckImage:
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [0,3600,450,1100]
+            self.range = [0,3600,500,1100]
             self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
     
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = "../img/2017-08-11 (1) 0015.jpg"
+    path = '/Users/kangfu/Code/img/2017-08-11 (2) 0018.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     
