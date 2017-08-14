@@ -9,7 +9,7 @@ import cv2
 import math
 import numpy as np
 from utils import saver
-from check_color import checkRed,checkBlue,checkColor,checkAllColor
+from check_color import checkRed,checkBlue,checkGreen,checkColor,checkAllColor
 from functools import cmp_to_key
 
 def _sortCircle(a,b):
@@ -92,17 +92,22 @@ class CheckImage:
     def _checkPont(self,im,p):
         mask_r = checkRed(im)
         mask_b = checkBlue(im)
+        mask_g = checkGreen(im)
         if p==0:
             # UP RED
             if mask_r.mean()>140:
                 return 1
             if mask_r.mean() > 60 and mask_b.mean() > 40:
                 return 1
+            if mask_r.mean() > 60 and mask_g.mean() > 40:
+                return 1
         else:
             if mask_b.mean() > 140:
                 return 2
             if mask_r.mean() > 40 and mask_b.mean() > 60:
                 return 2
+            if mask_b.mean() > 60 and mask_g.mean() > 40:
+                return 1
         return 0
             
             
