@@ -7,7 +7,7 @@ Created on Fri Aug  4 15:02:07 2017
 """
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import *  
+from PyQt5.QtCore import *
 import sys
 import yaml
 import re
@@ -48,9 +48,13 @@ class Runthread(QtCore.QThread):
         detecter = DetectImage()
         while True:
             self.setpath = main_app.path
-            image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
-            need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
-            need_test = list(set(need_test))
+            try:
+                image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
+                need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
+                need_test = list(set(need_test))
+            except Exception as e:
+                self._signal.emit("文件路径错误，无法读取图片")
+                break
             # need_test = list(set(image_filenames) ^ set(self.last_filenames))
             if len(need_test)==0:
                 continue
@@ -201,20 +205,24 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         now = datetime.datetime.now()
         time = now.strftime('%Y_%m_%d_%H_%M_%S')
         
-        if self.up_down==0:
-            result = pd.DataFrame(self.up_ans)
-            result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
-            boldExcel(self.setting['result']+"/结果_%s.xlsx"%time)
-        else:
-            result_A = pd.DataFrame(self.down_ans[0])
-            result_B = pd.DataFrame(self.down_ans[1])
-            result_A.to_excel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
-            result_B.to_excel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
-            
-            boldExcel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
-            boldExcel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
-            
-        self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
+        try:
+            if self.up_down==0:
+                result = pd.DataFrame(self.up_ans)
+                result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
+                boldExcel(self.setting['result']+"/结果_%s.xlsx"%time)
+            else:
+                result_A = pd.DataFrame(self.down_ans[0])
+                result_B = pd.DataFrame(self.down_ans[1])
+                result_A.to_excel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
+                result_B.to_excel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
+                
+                boldExcel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
+                boldExcel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
+                
+            self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
+
+        except Exception as e:
+                self.logOuter("输出结果路径错误\n", 1)
 
     def settingButtonAction(self):
         print("Setting")
