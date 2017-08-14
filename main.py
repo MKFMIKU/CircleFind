@@ -140,6 +140,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.pushButton.setStyleSheet("border-image: url(:/new/outer/up_black.png)")
             self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down.png)")
+        with open('setting.yml') as f:
+            self.setting = yaml.safe_load(f)
     
     def switch_up_down(self):
         _translate = QtCore.QCoreApplication.translate
