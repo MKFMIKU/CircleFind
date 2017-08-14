@@ -67,8 +67,8 @@ class Runthread(QtCore.QThread):
                     if im is None:
                         self._signal.emit("读取 %s 错误"%f)
                         continue
-                    type = detecter.detect(im[0:3500,0:800,:])
                     try:
+                        type = detecter.detect(im[0:3400,0:800,:])
                         checker = CheckImage(type)
                         err,res = checker.check(f,main_app.up_down)
                     except Exception as e:

@@ -36,7 +36,7 @@ class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
         )
         with open('setting.yml', 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
-        self.close()
+            self.close()
         
     def closeAction(self):
         self.close()

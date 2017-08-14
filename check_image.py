@@ -39,21 +39,21 @@ class CheckImage:
         if type==1:
             self.radius = 30
             self.size = [6,52]
-            self.range = [500,3500,850,1350]
+            self.range = [50,3600,850,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
             self.cycleFilter = [50,30,20,30]
         if type==2:
             self.radius = 35
             self.size = [6,50]
-            self.range = [50,3500,400,1000]
+            self.range = [50,3600,400,1000]
             self.widthFilter = [2800,3500]
             self.threshFilter = [225,255]
             self.cycleFilter = [50,40,20,40]
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [00,3600,550,1100]
+            self.range = [0,3600,450,1100]
             self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
     
@@ -146,13 +146,12 @@ class CheckImage:
     def check_up(self,path):
         result = np.zeros((self.size[1]), dtype=np.int)
         img = cv2.imread(path)
-        crop = img[self.range[0]:self.range[1],
-                   self.range[2]:self.range[3], :]
+        crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
-        # saver(draw,"D")
+        saver(draw,"D")
         y_index = 0
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -171,7 +170,7 @@ class CheckImage:
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
             color = checkColor(circle)
-            saver(circle,count)
+            # saver(circle,count)
             count+=1
             if _abs(c[1] - y_max) > self.radius*2-20:
                 y_index += 1

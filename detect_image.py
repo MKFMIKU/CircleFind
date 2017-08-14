@@ -31,9 +31,9 @@ def mse(imageA, imageB):
 class DetectImage:
     def __init__(self):
         self.type = [
-                cv2.imread(path1)[0:3500,0:800,:],
-                cv2.imread(path2)[0:3500,0:800,:],
-                cv2.imread(path3)[0:3500,0:800,:],
+                cv2.imread(path1)[0:3400,0:800,:],
+                cv2.imread(path2)[0:3400,0:800,:],
+                cv2.imread(path3)[0:3400,0:800,:],
         ]
         
     def detect(self,img):
@@ -51,7 +51,7 @@ class DetectImage:
         return index+1
          
 if __name__ == "__main__":
-    im = cv2.imread("../img/2017-08-11 (1) 0006.jpg")[0:3500,0:800,:]
+    im = cv2.imread("../img/2017-08-11 (1) 0006.jpg")[0:3400,0:800,:]
     saver(im,"i")
     detecter = DetectImage()
     type = detecter.detect(im)
