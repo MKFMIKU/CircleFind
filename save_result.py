@@ -6,6 +6,7 @@ Created on Fri Aug  4 15:02:07 2017
 @author: kangfu
 """
 import numpy as np
+import types
 
 def save_result(res,log,t):
     if t==1:
@@ -13,26 +14,30 @@ def save_result(res,log,t):
         ans_b = [[0,log]]
         
         count = 0
-        for i in res[0]:
-            count+=1
-            r = [count]
-            for j in i:
-                if j==-1:
-                    r.append('')
-                else:
-                    r.append(j)
-            ans_a.append(r)
-        
-        count = 0
-        for i in res[1]:
-            count+=1
-            r = [count]
-            for j in i:
-                if j==-1:
-                    r.append('')
-                else:
-                    r.append(j)
-            ans_b.append(r)
+        if type(res[0]) == type(-1000):
+             ans_a.append(["图片无法识别"])
+             ans_b.append(["图片无法识别"])
+        else:
+            for i in res[0]:
+                count+=1
+                r = [count]
+                for j in i:
+                    if j==-1:
+                        r.append('')
+                    else:
+                        r.append(j)
+                ans_a.append(r)
+            
+            count = 0
+            for i in res[1]:
+                count+=1
+                r = [count]
+                for j in i:
+                    if j==-1:
+                        r.append('')
+                    else:
+                        r.append(j)
+                ans_b.append(r)
         ans_a.append([""])
         ans_b.append([""])
         return ans_a,ans_b

@@ -224,6 +224,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 
         except Exception as e:
+                print(e)
                 self.logOuter("输出结果路径错误\n", 1)
 
     def settingButtonAction(self):
