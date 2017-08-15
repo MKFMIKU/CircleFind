@@ -21,7 +21,7 @@ def save_result(res,log,t):
             for i in res[0]:
                 count+=1
                 r = [count]
-                for _, j in reversed(list(enumerate(i))):
+                for j in i:
                     if j==-1:
                         r.append('')
                     else:
@@ -32,7 +32,7 @@ def save_result(res,log,t):
             for i in res[1]:
                 count+=1
                 r = [count]
-                for _, j in reversed(list(enumerate(i))):
+                for j in i:
                     if j==-1:
                         r.append('')
                     else:

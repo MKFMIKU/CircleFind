@@ -22,7 +22,7 @@ def _sortSmall(a,b):
     if abs(a[1]-b[1]) < 30:
         return a[0]-b[0]
     else:
-        return a[1]-b[1]
+        return b[1]-a[1]
     
 def _abs(a):
     if a<0:
@@ -116,7 +116,8 @@ class CheckImage:
         points_check = np.zeros((15,6), dtype=np.int)
         img = cv2.imread(path)
         crop = img[400:1500,1300:1750]
-        crop = cv2.flip(crop,-1)
+        # crop = cv2.flip(crop,-1)
+        saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=50,
@@ -129,13 +130,14 @@ class CheckImage:
         count = 0
         points = 0
         for c in one:
+            print(c)
             c = np.array(c).astype('int')
             circle = crop[c[1]-radius:c[1]+radius,
                           c[0]-radius:c[0]+radius,:]
             up_circle = circle[0:radius,radius:2*radius]
             down_circle = circle[radius:2*radius,0:radius]
-            saver(up_circle,"U_%d"%count)
-            saver(down_circle, "D_%d"%count)
+            saver(circle,"C_%d"%count)
+            # saver(down_circle, "D_%d"%count)
             color = checkAllColor(circle)
             points = self._checkPont(up_circle,0)+self._checkPont(down_circle,1)
             colors_check[count//6][count%6] = color
@@ -230,5 +232,5 @@ if __name__ == "__main__":
     test_err = "test/err.jpg"
     path = '/Users/kangfu/Code/img/2017-08-11 (2) 0018.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,0)
+    err,result = checker.check(path,1)
     
