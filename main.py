@@ -46,11 +46,15 @@ class Runthread(QtCore.QThread):
 
     def run(self):
         detecter = DetectImage()
+        main_app._update()
         while True:
             self.setpath = main_app.path
             try:
                 image_filenames = [self.setpath+'/'+x for x in listdir(self.setpath) if is_image_file(x)]
-                need_test = [i for i in  image_filenames if i not in main_app.last_filenames]
+                if main_app.up_down == 0:
+                    need_test = [i for i in  image_filenames if i not in main_app.last_filenames_up]
+                else:
+                    need_test = [i for i in  image_filenames if i not in main_app.last_filenames_down]
                 need_test = list(set(need_test))
             except Exception as e:
                 self._signal.emit("文件路径错误，无法读取图片")
@@ -85,11 +89,12 @@ class Runthread(QtCore.QThread):
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
                     if main_app.up_down == 0:
                         main_app.up_ans.extend(save_result(res,log,0))
+                        main_app.last_filenames_up.append(f)
                     else:
                         a,b = save_result(res,log,1)
                         main_app.down_ans[0].extend(a)
                         main_app.down_ans[1].extend(b)
-                    main_app.last_filenames.append(f)
+                        main_app.last_filenames_down.append(f)
                 else:
                     break
             if  main_app.begin_run == 0:
@@ -118,7 +123,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.begin_run = 0
         self.devices = 0    #设备切换
         self.up_down = 0    #上栏或者下栏切换
-        self.last_filenames = []
+        self.last_filenames_up = []
+        self.last_filenames_down = []
         self.up_ans = []
         self.down_ans = [[],[]]
         with open('setting.yml') as f:
