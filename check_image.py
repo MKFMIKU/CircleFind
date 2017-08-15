@@ -94,19 +94,19 @@ class CheckImage:
         mask_b = checkBlue(im)
         mask_g = checkGreen(im)
         if p==0:
-            # UP RED
+            # DOWN
             if mask_r.mean()>140:
                 return 1
-            if mask_r.mean() > 60 and mask_b.mean() > 40:
+            if mask_r.mean() > 40 and mask_b.mean() > 40:
                 return 1
-            if mask_r.mean() > 60 and mask_g.mean() > 40:
+            if mask_r.mean() > 40 and mask_g.mean() > 40:
                 return 1
         else:
             if mask_b.mean() > 140:
                 return 2
-            if mask_r.mean() > 40 and mask_b.mean() > 60:
+            if mask_b.mean() > 40 and mask_r.mean() > 40:
                 return 2
-            if mask_b.mean() > 60 and mask_g.mean() > 40:
+            if mask_b.mean() > 40 and mask_g.mean() > 40:
                 return 1
         return 0
             
@@ -137,9 +137,10 @@ class CheckImage:
             up_circle = circle[0:radius,radius:2*radius]
             down_circle = circle[radius:2*radius,0:radius]
             saver(circle,"C_%d"%count)
-            # saver(down_circle, "D_%d"%count)
+            saver(down_circle, "D_%d"%count)
+            saver(up_circle, "U_%d"%count)
             color = checkAllColor(circle)
-            points = self._checkPont(up_circle,0)+self._checkPont(down_circle,1)
+            points = self._checkPont(up_circle,1)+self._checkPont(down_circle,0)
             colors_check[count//6][count%6] = color
             points_check[count//6][count%6] = points
             count+=1
