@@ -95,19 +95,19 @@ class CheckImage:
         mask_g = checkGreen(im)
         if p==0:
             # DOWN
-            if mask_r.mean()>140:
+            if mask_r.mean()>145:
                 return 1
-            if mask_r.mean() > 40 and mask_b.mean() > 40:
+            if mask_r.mean() > 40 and mask_b.mean() > 20:
                 return 1
-            if mask_r.mean() > 40 and mask_g.mean() > 40:
+            if mask_r.mean() > 40 and mask_g.mean() > 20:
                 return 1
         else:
-            if mask_b.mean() > 140:
+            if mask_b.mean() > 145:
                 return 2
-            if mask_b.mean() > 40 and mask_r.mean() > 40:
+            if mask_b.mean() > 40 and mask_r.mean() > 20:
                 return 2
-            if mask_b.mean() > 40 and mask_g.mean() > 40:
-                return 1
+            if mask_b.mean() > 40 and mask_g.mean() > 20:
+                return 2
         return 0
             
             
@@ -123,14 +123,14 @@ class CheckImage:
                                    param1=50,
                                    param2=30,
                                    minRadius=15,
-                                   maxRadius=35)
+                                   maxRadius=38)
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortSmall))
         radius = 30
         count = 0
         points = 0
         for c in one:
-            print(c)
+            # print(c)
             c = np.array(c).astype('int')
             circle = crop[c[1]-radius:c[1]+radius,
                           c[0]-radius:c[0]+radius,:]

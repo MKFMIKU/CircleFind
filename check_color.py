@@ -55,9 +55,12 @@ def checkAllColor(img):
     return -1
 
 if __name__ == "__main__":
-    path = "outer/test_3.png"
+    path = "outer/test_D_37.png"
     img = cv2.imread(path)
-    if checkColor(img)==1:
-        print("Red Cycle")
-    else:
-        print("Blue Cycle")
+    r = checkRed(img)
+
+    print("Red: ", r.mean())
+    saver(r,"RED")
+
+    print("Blue: ", checkBlue(img).mean())
+    print("Green", checkGreen(img).mean())
