@@ -56,6 +56,19 @@ class CheckImage:
             self.range = [0,3600,500,1100]
             self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
+            
+    def _checkSquare(self, cnt):
+        cnt_len = cv2.arcLength(cnt, True)
+        cnt = cv2.approxPolyDP(cnt, 0.02*cnt_len, True)
+        if len(cnt) == 4 and cv2.contourArea(cnt) > 1000 and cv2.isContourConvex(cnt):
+            cnt = cnt.reshape(-1, 2)
+            max_cos = np.max([self._angle_cos( cnt[i], cnt[(i+1) % 4], cnt[(i+2) % 4] ) for i in range(4)])
+            if max_cos < 0.1:
+                w = cnt[1][1]-cnt[0][1]
+                if w>self.widthFilter[0] and w<self.widthFilter[1]:
+                    self.square = cnt
+                    return True
+        return False
     
     def _drawCircles(self, crop, circles):
         draw = crop.copy()
@@ -154,11 +167,20 @@ class CheckImage:
     def check_up(self,path):
         result = np.zeros((self.size[1]), dtype=np.int)
         img = cv2.imread(path)
-        print(self.type)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
-        saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        if self.type==1:
+            edges = cv2.Canny(crop_gray,100,200)
+            edges = edges[:,edges.shape[1]-200:edges.shape[1]]
+            kernel = np.ones((5,5),np.uint8)
+            edges = cv2.dilate(edges,kernel,iterations = 1)
+            lines = cv2.HoughLinesP(edges,1,np.pi/180,100,minLineLength=1000,maxLineGap=10)
+            cut_off = 0
+            for x1,y1,x2,y2 in lines[0]:
+                cut_off = (x1+x2)//2
+            crop = crop[:,0:crop.shape[1]-200+cut_off,:]
+            crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
         saver(draw,"D")
@@ -172,14 +194,11 @@ class CheckImage:
         outer_side = 3*self.radius
         err = 0
         for c in one:
-            print(c)
+            # print(c)
             if c[1] - y_max > self.radius*4:
                 break;
             c = np.array(c).astype('int')
             # if wrong
-            if crop.shape[1]-c[0]<self.radius and self.type==1:
-                err = 1
-                continue
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
             color = checkColor(circle)
@@ -238,5 +257,5 @@ if __name__ == "__main__":
     test_err = "test/err.jpg"
     path = '/Users/kangfu/Code/img/2017-08-11 (2) 0018.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    err,result = checker.check(path,0)
     
