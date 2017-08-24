@@ -154,8 +154,10 @@ class CheckImage:
     def check_up(self,path):
         result = np.zeros((self.size[1]), dtype=np.int)
         img = cv2.imread(path)
+        print(self.type)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
+        saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
@@ -170,6 +172,9 @@ class CheckImage:
         outer_side = 3*self.radius
         err = 0
         for c in one:
+            print(c)
+            if c[1] - y_max > self.radius*4:
+                break;
             c = np.array(c).astype('int')
             # if wrong
             if crop.shape[1]-c[0]<self.radius and self.type==1:
