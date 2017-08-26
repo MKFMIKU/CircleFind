@@ -42,7 +42,7 @@ class CheckImage:
             self.range = [50,3600,700,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,30,20,30]
+            self.cycleFilter = [50,30,18,30]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -171,20 +171,24 @@ class CheckImage:
         crop = cv2.flip(crop,-1)
         saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        if self.type==1:
+        '''
+        # 直线检测 Ignore
+        if self.type==1: 
             edges = cv2.Canny(crop_gray,100,200)
             edges = edges[:,edges.shape[1]-400:edges.shape[1]-100]
             kernel = np.ones((5,5),np.uint8)
             edges = cv2.dilate(edges,kernel,iterations = 1)
             saver(edges,"EDGES")
-            lines = cv2.HoughLinesP(edges,1,np.pi/180,200,minLineLength=1000,maxLineGap=20)
+            lines = cv2.HoughLinesP(edges,2,np.pi/180,200,minLineLength=500,maxLineGap=20)
             cut_off = 0
             for x1,y1,x2,y2 in lines[0]:
                 cut_off = (x1+x2)//2
                 print("cut_off:", cut_off)
+                
             crop = crop[:,0:crop.shape[1]-400+cut_off,:]
             crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        circles = self._findCircles(crop_gray)
+        '''
+        circles = self._findCircles(crop_gray)            
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
         y_index = 0
@@ -196,6 +200,8 @@ class CheckImage:
         x_min = one[0][0]
         outer_side = 3*self.radius
         err = 0
+        if self.type == 1:
+            one = one[2:]
         for c in one:
             # print(c)
             if c[1] - y_max > self.radius*4:
@@ -232,9 +238,13 @@ class CheckImage:
                 outer_side = c[0]
             # print("DEBUG",c, color)
         for i in range(0, y_index-2):
-            if abs(result[i]>=6) and abs(result[i+2]>=6):
-                err = 1
-                break
+            if abs(result[i]) >= 6:
+                for j in range(i+1, y_index-2):
+                    # print("I: ", i, "J: ",j, result[i], result[j])
+                    if abs(result[i] + result[j]) >= abs(result[i]) + abs(result[j]) and abs(result[j])>=6:
+                        if abs(result[i])-5 >= j-i:
+                            err = 1
+                            break
         return result,one,err
     
     def check(self, path, up_down):
@@ -258,7 +268,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0044.jpg'
-    checker = CheckImage(1)
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0004.jpg'
+    checker = CheckImage(3)
     err,result = checker.check(path,0)
+    print("Err", err)
+    print("Result", result)
     
