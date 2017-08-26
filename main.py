@@ -72,7 +72,8 @@ class Runthread(QtCore.QThread):
                         self._signal.emit("读取 %s 错误"%f)
                         continue
                     try:
-                        type = detecter.detect(im[0:3400,0:800,:])
+                        type = detecter.detect(f)
+                        print("总类%d"%type)
                         checker = CheckImage(type)
                         err,res = checker.check(f,main_app.up_down)
                     except Exception as e:

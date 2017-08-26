@@ -31,28 +31,30 @@ def mse(imageA, imageB):
 class DetectImage:
     def __init__(self):
         self.type = [
-                cv2.imread(path1)[0:3400,0:800,:],
-                cv2.imread(path2)[0:3400,0:800,:],
-                cv2.imread(path3)[0:3400,0:800,:],
+                cv2.imread(path1),
+                cv2.imread(path2),
+                cv2.imread(path3),
         ]
         
-    def detect(self,img):
+    def detect(self,f):
+        img = cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY)
+        im_u = img[0:3400,400:1000]
+        im_d = img[0:3400,1200:2400]
         index = 0
-        ssim_min = -1
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        mse_min = -1
         for i in range(len(self.type)):
-            d = cv2.cvtColor(self.type[i], cv2.COLOR_BGR2GRAY)
-            ssim = compare_psnr(d,img)
-            # saver(d,i)
-            # print(ssim, index)
-            if ssim_min < ssim:
+            u = cv2.cvtColor(self.type[i][0:3400,400:1000,:], cv2.COLOR_BGR2GRAY)
+            d = cv2.cvtColor(self.type[i][0:3400,1200:2400,:], cv2.COLOR_BGR2GRAY)
+            mse = compare_psnr(u,im_u) + compare_psnr(d,im_d)
+            # saver(d,'d_%d'%i)
+            # saver(u,'u_%d'%i)
+            print(mse, index)
+            if mse_min < mse:
                 index = i
-                ssim_min = ssim
+                mse_min = mse
         return index+1
          
 if __name__ == "__main__":
-    im = cv2.imread("../img/2017-08-11 (1) 0006.jpg")[0:3400,0:800,:]
-    saver(im,"i")
     detecter = DetectImage()
-    type = detecter.detect(im)
+    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0058.jpg')
     print(type)

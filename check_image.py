@@ -39,7 +39,7 @@ class CheckImage:
         if type==1:
             self.radius = 30
             self.size = [6,52]
-            self.range = [50,3600,850,1350]
+            self.range = [50,3600,700,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
             self.cycleFilter = [50,30,20,30]
@@ -169,21 +169,24 @@ class CheckImage:
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
+        saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         if self.type==1:
             edges = cv2.Canny(crop_gray,100,200)
-            edges = edges[:,edges.shape[1]-200:edges.shape[1]]
+            edges = edges[:,edges.shape[1]-400:edges.shape[1]-100]
             kernel = np.ones((5,5),np.uint8)
             edges = cv2.dilate(edges,kernel,iterations = 1)
-            lines = cv2.HoughLinesP(edges,1,np.pi/180,100,minLineLength=1000,maxLineGap=10)
+            saver(edges,"EDGES")
+            lines = cv2.HoughLinesP(edges,1,np.pi/180,200,minLineLength=1000,maxLineGap=20)
             cut_off = 0
             for x1,y1,x2,y2 in lines[0]:
                 cut_off = (x1+x2)//2
-            crop = crop[:,0:crop.shape[1]-200+cut_off,:]
+                print("cut_off:", cut_off)
+            crop = crop[:,0:crop.shape[1]-400+cut_off,:]
             crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
         draw = self._drawCircles(crop, circles)
-        saver(draw,"D")
+        saver(draw,"D_%s"%path[-8:-4])
         y_index = 0
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -255,7 +258,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Code/img/2017-08-11 (2) 0018.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0044.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     
