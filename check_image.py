@@ -128,15 +128,17 @@ class CheckImage:
         colors_check = np.zeros((15,6), dtype=np.int)
         points_check = np.zeros((15,6), dtype=np.int)
         img = cv2.imread(path)
-        crop = img[400:1500,1300:1750]
+        crop = img[400:1500,1300:1900]
         # crop = cv2.flip(crop,-1)
         saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=50,
                                    param2=30,
-                                   minRadius=15,
-                                   maxRadius=38)
+                                   minRadius=13,
+                                   maxRadius=34)
+        draw = self._drawCircles(crop, circles)
+        saver(draw,"D_%s"%path[-8:-4])
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortSmall))
         radius = 30
@@ -149,9 +151,9 @@ class CheckImage:
                           c[0]-radius:c[0]+radius,:]
             up_circle = circle[0:radius,radius:2*radius]
             down_circle = circle[radius:2*radius,0:radius]
-            saver(circle,"C_%d"%count)
-            saver(down_circle, "D_%d"%count)
-            saver(up_circle, "U_%d"%count)
+            # saver(circle,"C_%d"%count)
+            # saver(down_circle, "D_%d"%count)
+            # saver(up_circle, "U_%d"%count)
             color = checkAllColor(circle)
             points = self._checkPont(up_circle,1)+self._checkPont(down_circle,0)
             colors_check[count//6][count%6] = color
@@ -268,9 +270,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0004.jpg'
-    checker = CheckImage(3)
-    err,result = checker.check(path,0)
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0014.jpg'
+    checker = CheckImage(1)
+    err,result = checker.check(path,1)
     print("Err", err)
     print("Result", result)
     
