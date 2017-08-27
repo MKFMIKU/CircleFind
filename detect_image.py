@@ -21,9 +21,9 @@ path3 = "test/type3.jpg"
 class DetectImage:
     def __init__(self):
         self.type = [
-                cv2.imread(path1, 0)[0:3400,1600:2400],
-                cv2.imread(path2, 0)[0:3400,1600:2400],
-                cv2.imread(path3, 0)[0:3400,1600:2400],
+                cv2.imread(path1, 0)[0:3400,1200:2400],
+                cv2.imread(path2, 0)[0:3400,1200:2400],
+                cv2.imread(path3, 0)[0:3400,1200:2400],
         ]
         self.orb = cv2.AKAZE_create()
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -46,19 +46,17 @@ class DetectImage:
                 index = i
                 mse_min = mse
         '''
-        min_diff = 1000
-        index = 0 
-        img = cv2.imread(f, 0)[0:3400,1600:2400]
-        saver(img,"I")
-        for i in range(len(self.type)):
-            diff = np.abs(img - self.type[i]).mean()
-            print(diff, i)
-            if diff < min_diff:
-                min_diff = diff
-                index = i
-        return index+1
+        img = cv2.imread(f, 0)
+        _,img = cv2.threshold(img, 127,255,cv2.THRESH_BINARY_INV)
+        # saver(img[0:3400,1600:2400],"I")
+        # print(img[0:3400,1600:2400].mean())
+        if img[0:3400,1600:2400].mean() >= 10:
+            return 2
+        if img[0:3400,200:600].mean() >= 4:
+            return 3
+        return 1
                      
 if __name__ == "__main__":
     detecter = DetectImage()
-    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0094.jpg')
+    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0107.jpg')
     print(type)
