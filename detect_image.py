@@ -21,9 +21,9 @@ path3 = "test/type3.jpg"
 class DetectImage:
     def __init__(self):
         self.type = [
-                cv2.imread(path1, 0)[0:3400,1200:2400],
-                cv2.imread(path2, 0)[0:3400,1200:2400],
-                cv2.imread(path3, 0)[0:3400,1200:2400],
+                cv2.imread(path1, 0)[0:3400,1600:2400],
+                cv2.imread(path2, 0)[0:3400,1600:2400],
+                cv2.imread(path3, 0)[0:3400,1600:2400],
         ]
         self.orb = cv2.AKAZE_create()
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -48,9 +48,11 @@ class DetectImage:
         '''
         min_diff = 1000
         index = 0 
-        img = cv2.imread(f, 0)[0:3400,1200:2400]
+        img = cv2.imread(f, 0)[0:3400,1600:2400]
+        saver(img,"I")
         for i in range(len(self.type)):
             diff = np.abs(img - self.type[i]).mean()
+            print(diff, i)
             if diff < min_diff:
                 min_diff = diff
                 index = i
@@ -58,5 +60,5 @@ class DetectImage:
                      
 if __name__ == "__main__":
     detecter = DetectImage()
-    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0077.jpg')
+    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0094.jpg')
     print(type)

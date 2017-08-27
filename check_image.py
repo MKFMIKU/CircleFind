@@ -42,7 +42,7 @@ class CheckImage:
             self.range = [50,3600,700,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,30,18,30]
+            self.cycleFilter = [50,30,18,35]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -239,12 +239,16 @@ class CheckImage:
                 ll = y_index
                 outer_side = c[0]
             # print("DEBUG",c, color)
-        for i in range(0, y_index-2):
+        for i in range(0, y_index):
             if abs(result[i]) >= 6:
-                for j in range(i+1, y_index-2):
-                    # print("I: ", i, "J: ",j, result[i], result[j])
+                for j in range(i+1, y_index):
+                    #print("I: ", i, "J: ",j, result[i], result[j])
                     if abs(result[i] + result[j]) >= abs(result[i]) + abs(result[j]) and abs(result[j])>=6:
                         if abs(result[i])-5 >= j-i:
+                            err = 1
+                            break
+                    if abs(result[i] + result[j]) < abs(result[i]) + abs(result[j]) and abs(result[j])>=5:
+                        if abs(result[i])-6 >= j-i:
                             err = 1
                             break
         return result,one,err
@@ -270,9 +274,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0014.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0148.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    err,result = checker.check(path,0)
     print("Err", err)
     print("Result", result)
     
