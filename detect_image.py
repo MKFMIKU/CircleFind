@@ -58,5 +58,5 @@ class DetectImage:
                      
 if __name__ == "__main__":
     detecter = DetectImage()
-    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0107.jpg')
+    type = detecter.detect('/Users/kangfu/Downloads/image/2017-08-25 (1) 0119.jpg')
     print(type)
