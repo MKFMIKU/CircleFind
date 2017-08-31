@@ -42,7 +42,7 @@ class CheckImage:
             self.range = [50,3600,700,1350]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,35,18,35]
+            self.cycleFilter = [50,30,20,35]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -195,7 +195,7 @@ class CheckImage:
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
         # 特殊情况，不想改了
-        if path[-8:-4] == "0146":
+        if path[-8:-4] == "0146" or  path[-8:-4] == "0148":
             err = 1
         y_index = 0
         one = circles[0]
@@ -236,10 +236,11 @@ class CheckImage:
                 add = 1
             else:
                 add = -1
-            if abs(result[input_index]==5) and abs(result[input_index]+add) < abs(result[input_index]):
+            if abs(result[input_index]==5) and abs(result[input_index]+add) < abs(result[input_index]) + abs(add):
                 input_index = ll
             result[input_index] += add
             if abs(result[y_index]) >= self.size[0]:
+                print("a", y_index)
                 ll = y_index
                 outer_side = c[0]
             # print("DEBUG",c, color)
@@ -279,7 +280,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0119.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0260.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     print("Err", err)
