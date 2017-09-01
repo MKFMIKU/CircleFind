@@ -108,18 +108,18 @@ class CheckImage:
         mask_g = checkGreen(im)
         if p==0:
             # DOWN
-            if mask_r.mean()>145:
+            if mask_r.mean()>125:
                 return 1
-            if mask_r.mean() > 40 and mask_b.mean() > 20:
+            if mask_r.mean() > 20 and mask_b.mean() > 20:
                 return 1
-            if mask_r.mean() > 40 and mask_g.mean() > 20:
+            if mask_r.mean() > 20 and mask_g.mean() > 20:
                 return 1
         else:
-            if mask_b.mean() > 145:
+            if mask_b.mean() > 125:
                 return 2
-            if mask_b.mean() > 40 and mask_r.mean() > 20:
+            if mask_b.mean() > 20 and mask_r.mean() > 20:
                 return 2
-            if mask_b.mean() > 40 and mask_g.mean() > 20:
+            if mask_b.mean() > 20 and mask_g.mean() > 20:
                 return 2
         return 0
             
@@ -135,7 +135,7 @@ class CheckImage:
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=50,
                                    param2=30,
-                                   minRadius=13,
+                                   minRadius=15,
                                    maxRadius=34)
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
@@ -168,82 +168,76 @@ class CheckImage:
 
     def check_up(self,path):
         result = np.zeros((self.size[1]), dtype=np.int)
+        err = 0
+        y_index = 0     #第几行
+        count = 0       #第几个
+        ll = 0
+        outer_side = 0
+
+        # Read
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
-        saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        '''
-        # 直线检测 Ignore
-        if self.type==1: 
-            edges = cv2.Canny(crop_gray,100,200)
-            edges = edges[:,edges.shape[1]-400:edges.shape[1]-100]
-            kernel = np.ones((5,5),np.uint8)
-            edges = cv2.dilate(edges,kernel,iterations = 1)
-            saver(edges,"EDGES")
-            lines = cv2.HoughLinesP(edges,2,np.pi/180,200,minLineLength=500,maxLineGap=20)
-            cut_off = 0
-            for x1,y1,x2,y2 in lines[0]:
-                cut_off = (x1+x2)//2
-                print("cut_off:", cut_off)
-                
-            crop = crop[:,0:crop.shape[1]-400+cut_off,:]
-            crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        '''
-        err = 0
-        circles = self._findCircles(crop_gray)            
+        circles = self._findCircles(crop_gray)
+
+        # Logger
+        saver(crop,"C")
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
+        
         # 特殊情况，不想改了
         if path[-8:-4] == "0146" or  path[-8:-4] == "0148":
             err = 1
-        y_index = 0
+        
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
-        y_max = one[0][1]
-        count = 0
-        ll = 0
-        x_min = one[0][0]
-        outer_side = 3*self.radius
+        y_min = one[0][1]
+        x_max = one[0][0]
+        # 过滤Type1的两个噪声
         if self.type == 1:
             one = one[2:]
+
         for c in one:
-            # print(c)
-            if c[1] - y_max > self.radius*4:
-                break;
+            count+=1
             c = np.array(c).astype('int')
-            # if wrong
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
             color = checkColor(circle)
-            # print("C_%d"%count, color)
-            # saver(circle,count)
-            count+=1
-            if _abs(c[1] - y_max) > self.radius*2-20:
+            if _abs(c[1] - y_min) > self.radius*2-20:
                 y_index += 1
-                x_min = c[0]
-            y_max = int(c[1])
-            input_index = y_index
-            
-            if c[0] == x_min and abs(c[0]-outer_side)<self.radius:
-                input_index = ll            
-            if x_min - c[0] > self.radius*3:
+                x_max = c[0] #换行了，代表最右边的坐标x—max更新
+            y_min = c[1]
+            input_index = y_index   #如果没有问题,用y_index作为结果添加的位置
+           
+           #如果这个圆圈是在左边的圆圈，并且右边没有圆圈(就是说这个圆圈的x等于代表第一个圆圈的x_max)
+            if outer_side!=0 and c[0] == x_max and abs(c[0]-outer_side)<self.radius:
+                input_index = ll
+
+            # 这个圆圈和它右边的链接不上，应该是换行来的圆圈
+            if x_max - c[0] > self.radius*3:
                 input_index = ll
             else:
-                x_min = c[0]
+                x_max = c[0]
+            
             add = 0
             if color==1:
                 add = 1
             else:
                 add = -1
-            if abs(result[input_index]==5) and abs(result[input_index]+add) < abs(result[input_index]) + abs(add):
+            
+            #如果两个圆圈颜色不同，就是换行来的
+            if abs(result[y_index])==5 and abs(result[y_index]+add) < abs(result[y_index]) + abs(add):
                 input_index = ll
+
+            #进行叠加计算
             result[input_index] += add
+            
             if abs(result[y_index]) >= self.size[0]:
-                print("a", y_index)
                 ll = y_index
                 outer_side = c[0]
-            # print("DEBUG",c, color)
+        
+        #识别报错的东西
         for i in range(0, y_index):
             if abs(result[i]) >= 6:
                 for j in range(i+1, y_index):
@@ -252,11 +246,6 @@ class CheckImage:
                         if abs(result[i])-5 >= j-i:
                             err = 1
                             break
-                    # if abs(result[i] + result[j]) < abs(result[i]) + abs(result[j]) and abs(result[j])>=6:
-                    #     #print("I: ", i, "J: ",j, result[i], result[j])
-                    #     if abs(result[i])-6 >= j-i:
-                    #         err = 1
-                    #         break
         return result,one,err
     
     def check(self, path, up_down):
@@ -280,9 +269,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0260.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0019.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,0)
+    err,result = checker.check(path,1)
     print("Err", err)
     print("Result", result)
     
