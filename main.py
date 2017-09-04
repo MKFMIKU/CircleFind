@@ -118,6 +118,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.cameraButton.clicked.connect(self.switch_devices)
         self.pushButton.clicked.connect(self.switch_up_down)
         self.pushButton_2.clicked.connect(self.switch_up_down)
+        self.clearLog.clicked.connect(self.clearLogger)
         self._update()
 
     def pre(self):
@@ -149,7 +150,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.pushButton_2.setStyleSheet("border-image: url(:/new/outer/down.png)")
         with open('setting.yml') as f:
             self.setting = yaml.safe_load(f)
-    
+        
+    def clearLogger(self):
+        self.textEdit.clear()
+
     def switch_up_down(self):
         _translate = QtCore.QCoreApplication.translate
         if self.begin_run==1:

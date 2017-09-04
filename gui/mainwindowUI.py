@@ -182,19 +182,17 @@ class Ui_MainWindow(object):
         self.textEdit.setStyleSheet("color: blue")
         self.textEdit.setObjectName("textEdit")
         self.gridLayout.addWidget(self.textEdit, 1, 0, 1, 1)
-        self.clearLog = QtWidgets.QLabel(self.centralWidget)
+        self.clearLog = QtWidgets.QPushButton(self.centralWidget)
+        self.clearLog.setMaximumSize(QtCore.QSize(100, 250))
         font = QtGui.QFont()
         font.setUnderline(True)
         self.clearLog.setFont(font)
-        self.clearLog.setStyleSheet("color: blue")
+        self.clearLog.setStyleSheet("color: blue;border: none;background-color: rgba( 255, 255, 255, 0);")
         self.clearLog.setObjectName("clearLog")
         self.gridLayout.addWidget(self.clearLog, 2, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MainWindow)
-        self.startButton.clicked.connect(MainWindow.startButton)
-        self.stopButton.clicked.connect(MainWindow.stopButton)
-        self.settingButton.clicked.connect(MainWindow.settingButton)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
