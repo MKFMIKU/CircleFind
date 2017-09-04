@@ -108,14 +108,14 @@ class CheckImage:
         mask_g = checkGreen(im)
         if p==0:
             # DOWN
-            if mask_r.mean()>125:
+            if mask_r.mean()>140:
                 return 1
             if mask_r.mean() > 20 and mask_b.mean() > 20:
                 return 1
             if mask_r.mean() > 20 and mask_g.mean() > 20:
                 return 1
         else:
-            if mask_b.mean() > 125:
+            if mask_b.mean() > 140:
                 return 2
             if mask_b.mean() > 20 and mask_r.mean() > 20:
                 return 2
@@ -149,8 +149,11 @@ class CheckImage:
             c = np.array(c).astype('int')
             circle = crop[c[1]-radius:c[1]+radius,
                           c[0]-radius:c[0]+radius,:]
-            up_circle = circle[0:radius,radius:2*radius]
-            down_circle = circle[radius:2*radius,0:radius]
+            print(c)
+            up_circle = crop[c[1]-radius:c[1],
+                          c[0]:c[0]+radius,:]
+            down_circle = crop[c[1]:c[1]+radius,
+                          c[0]-radius:c[0],:]
             # saver(circle,"C_%d"%count)
             # saver(down_circle, "D_%d"%count)
             # saver(up_circle, "U_%d"%count)
@@ -269,7 +272,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0019.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0015.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,1)
     print("Err", err)
