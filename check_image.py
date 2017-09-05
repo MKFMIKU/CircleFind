@@ -49,7 +49,7 @@ class CheckImage:
             self.range = [50,3600,400,1000]
             self.widthFilter = [2800,3500]
             self.threshFilter = [225,255]
-            self.cycleFilter = [50,40,20,40]
+            self.cycleFilter = [50,40,25,35]
         if type==3:
             self.radius = 35
             self.size = [6, 43]
@@ -206,6 +206,8 @@ class CheckImage:
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
+            if c[1] - y_min > self.radius*4:
+                break
             color = checkColor(circle)
             if _abs(c[1] - y_min) > self.radius*2-20:
                 y_index += 1
@@ -272,9 +274,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0015.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0160.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    err,result = checker.check(path,0)
     print("Err", err)
     print("Result", result)
     
