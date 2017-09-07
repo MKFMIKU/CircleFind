@@ -205,6 +205,8 @@ class CheckImage:
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
+
+            # 如果这个圆和它上面的那个隔了两个。那么认为噪声              
             if c[1] - y_min > self.radius*4:
                 break
             color = checkColor(circle)
