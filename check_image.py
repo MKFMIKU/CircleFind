@@ -135,8 +135,8 @@ class CheckImage:
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=50,
                                    param2=30,
-                                   minRadius=15,
-                                   maxRadius=34)
+                                   minRadius=20,
+                                   maxRadius=40)
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
         one = circles[0]
@@ -149,12 +149,11 @@ class CheckImage:
             c = np.array(c).astype('int')
             circle = crop[c[1]-radius:c[1]+radius,
                           c[0]-radius:c[0]+radius,:]
-            print(c)
             up_circle = crop[c[1]-radius:c[1],
                           c[0]:c[0]+radius,:]
             down_circle = crop[c[1]:c[1]+radius,
                           c[0]-radius:c[0],:]
-            # saver(circle,"C_%d"%count)
+            saver(circle,"C_%d"%count)
             # saver(down_circle, "D_%d"%count)
             # saver(up_circle, "U_%d"%count)
             color = checkAllColor(circle)
@@ -274,9 +273,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0160.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0145.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,0)
+    err,result = checker.check(path,1)
     print("Err", err)
     print("Result", result)
     

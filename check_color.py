@@ -29,7 +29,7 @@ def checkBlue(img):
 
 def checkGreen(img):
     lower_green = np.array([35,43,46])
-    upper_green = np.array([77,255,255])
+    upper_green = np.array([99,255,255])
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask_green = cv2.inRange(img_hsv, lower_green, upper_green)
     return mask_green
@@ -55,12 +55,16 @@ def checkAllColor(img):
     return -1
 
 if __name__ == "__main__":
-    path = "outer/test_D_37.png"
+    path = "outer/test_C_22.png"
     img = cv2.imread(path)
-    r = checkRed(img)
+    r = checkGreen(img)
 
-    print("Red: ", r.mean())
-    saver(r,"RED")
+    print("Green: ", r.mean())
+    saver(r,"GREEN")
 
     print("Blue: ", checkBlue(img).mean())
+
+    saver(checkBlue(img),"Blue")
+    
     print("Green", checkGreen(img).mean())
+    saver(checkRed(img),"Red")
