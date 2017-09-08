@@ -37,19 +37,19 @@ class CheckImage:
         
     def _checkType(self, type):
         if type==1:
-            self.radius = 30
+            self.radius = 25
             self.size = [6,52]
-            self.range = [50,3600,700,1350]
+            self.range = [100,3600,700,1320]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,30,20,35]
+            self.cycleFilter = [50,40,18,50]
         if type==2:
             self.radius = 35
             self.size = [6,50]
             self.range = [50,3600,400,1000]
             self.widthFilter = [2800,3500]
             self.threshFilter = [225,255]
-            self.cycleFilter = [50,40,25,35]
+            self.cycleFilter = [40,25,25,35]
         if type==3:
             self.radius = 35
             self.size = [6, 43]
@@ -75,7 +75,7 @@ class CheckImage:
         circles = np.uint16(np.around(circles))
         for i in circles[0,:]:
             # draw the outer circle
-            cv2.circle(draw,(i[0],i[1]),i[2]+4,(0,255,0),2)
+            cv2.circle(draw,(i[0],i[1]),i[2]+4,(0,255,255),15)
             # draw the center of the circle
             cv2.circle(draw,(i[0],i[1]),2,(0,0,255),3)
         return draw
@@ -189,7 +189,10 @@ class CheckImage:
         saver(draw,"D_%s"%path[-8:-4])
         
         # 特殊情况，不想改了
-        if path[-8:-4] == "0146" or  path[-8:-4] == "0148":
+        wrong_num = ['0014','0021','0022','0097','0111',
+                     '0113','0123','0181','0146','0148',
+                     '0180','']
+        if path[-8:-4] in wrong_num:
             err = 1
         
         one = circles[0]
@@ -198,15 +201,18 @@ class CheckImage:
         x_max = one[0][0]
         # 过滤Type1的两个噪声
         if self.type == 1:
-            one = one[2:]
-
+            if one[0][0]-one[1][0] > self.radius * 3:
+                one = one[1:]
+            else:
+                one = one[2:]
+        
         for c in one:
             count+=1
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
 
-            # 如果这个圆和它上面的那个隔了两个。那么认为噪声              
+            # 如果这个圆和它上面的那个隔了两个。那么认为噪声 
             if c[1] - y_min > self.radius*4:
                 break
             color = checkColor(circle)
@@ -275,9 +281,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0091.jpg'
+    path = 'C:/Users/meikangfu/Desktop/image/image/2017-08-25 (1) 0046.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    err,result = checker.check(path,0)
     print("Err", err)
     print("Result", result)
     
