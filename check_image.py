@@ -42,7 +42,7 @@ class CheckImage:
             self.range = [100,3600,700,1320]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,40,18,50]
+            self.cycleFilter = [40,25,15,60]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -73,7 +73,7 @@ class CheckImage:
     def _drawCircles(self, crop, circles):
         draw = crop.copy()
         circles = np.uint16(np.around(circles))
-        for i in circles[0,:]:
+        for i in circles:
             # draw the outer circle
             cv2.circle(draw,(i[0],i[1]),i[2]+4,(0,255,255),15)
             # draw the center of the circle
@@ -132,6 +132,7 @@ class CheckImage:
         # crop = cv2.flip(crop,-1)
         saver(crop,"C")
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        saver(crop_gray,"C_g")
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=40,
                                    param2=30,
@@ -175,17 +176,47 @@ class CheckImage:
         count = 0       #第几个
         ll = 0
         outer_side = 0
+        kernel = np.ones((3,3),np.uint8)
 
         # Read
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        crop_gray =  cv2.GaussianBlur(crop_gray,(5,5),0)
+        crop_gray = cv2.Laplacian(crop_gray,cv2.CV_8U)
+        _,crop_gray = cv2.threshold(crop_gray,10,255,cv2.THRESH_BINARY)
+        crop_gray = cv2.erode(crop_gray,kernel,iterations = 1)
+        crop_gray = cv2.dilate(crop_gray,kernel,iterations = 1)
         circles = self._findCircles(crop_gray)
+        saver(crop_gray,"g_%s"%path[-8:-4])
+        
+        one = circles[0]
+        one = sorted(one,key=cmp_to_key(_sortCircle))
+        
+        right_side = 0
+        if self.type == 1:
+            if one[0][0]-one[1][0] > self.radius * 3:
+                right_side = one[0][0] - one[0][2] 
+                one = one[1:]
+            else:
+                right_side = one[1][0] - one[1][2]
+                one = one[2:]
+            one_new = []
+            for c in one:
+                f = 0
+                if c[0] > right_side:
+                    f = 1
+                if c[2] > 30:
+                    f = 1
+                if f==0:
+                    one_new.append(c)
+        else:
+            one_new = one
 
         # Logger
         saver(crop,"C")
-        draw = self._drawCircles(crop, circles)
+        draw = self._drawCircles(crop, one_new)
         saver(draw,"D_%s"%path[-8:-4])
         
         # 特殊情况，不想改了
@@ -195,18 +226,10 @@ class CheckImage:
         if path[-8:-4] in wrong_num:
             err = 1
         
-        one = circles[0]
-        one = sorted(one,key=cmp_to_key(_sortCircle))
-        y_min = one[0][1]
-        x_max = one[0][0]
-        # 过滤Type1的两个噪声
-        if self.type == 1:
-            if one[0][0]-one[1][0] > self.radius * 3:
-                one = one[1:]
-            else:
-                one = one[2:]
+        y_min = one_new[0][1]
+        x_max = one_new[0][0]
         
-        for c in one:
+        for c in one_new:
             count+=1
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
@@ -281,7 +304,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = 'C:/Users/meikangfu/Desktop/image/image/2017-08-25 (1) 0046.jpg'
+    path = 'C:/Users/meikangfu/Desktop/image/image/2017-08-25 (1) 0019.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     print("Err", err)
