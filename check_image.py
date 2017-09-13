@@ -11,6 +11,7 @@ import numpy as np
 from utils import saver
 from check_color import checkRed,checkBlue,checkGreen,checkColor,checkAllColor
 from functools import cmp_to_key
+from remove_noise import clean_noise
 
 def _sortCircle(a,b):
     if abs(a[1]-b[1]) < 40:
@@ -42,7 +43,7 @@ class CheckImage:
             self.range = [100,3600,700,1320]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [40,25,15,60]
+            self.cycleFilter = [40,25,15,50]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -83,14 +84,6 @@ class CheckImage:
     def _angle_cos(self, p0, p1, p2):
         d1, d2 = (p0-p1).astype('float'), (p2-p1).astype('float')
         return abs( np.dot(d1, d2) / np.sqrt( np.dot(d1, d1)*np.dot(d2, d2) ) )
-    
-    def _findCircles(self, thresh):
-        circles = cv2.HoughCircles(thresh,cv2.HOUGH_GRADIENT,1,20,
-                                   param1=self.cycleFilter[0],
-                                   param2=self.cycleFilter[1],
-                                   minRadius=self.cycleFilter[2],
-                                   maxRadius=self.cycleFilter[3])
-        return circles
     
     def _findLastCircle(self, circles):
         last_w = 0
@@ -182,14 +175,21 @@ class CheckImage:
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
+        saver(crop,"CROP")
+        
+        # Clean
+        crop = clean_noise(crop, self.type)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         crop_gray =  cv2.GaussianBlur(crop_gray,(5,5),0)
         crop_gray = cv2.Laplacian(crop_gray,cv2.CV_8U)
         _,crop_gray = cv2.threshold(crop_gray,10,255,cv2.THRESH_BINARY)
-        crop_gray = cv2.erode(crop_gray,kernel,iterations = 1)
-        crop_gray = cv2.dilate(crop_gray,kernel,iterations = 1)
-        circles = self._findCircles(crop_gray)
-        saver(crop_gray,"g_%s"%path[-8:-4])
+        saver(crop_gray,"GRAY_%s"%path[-8:-4])
+        
+        circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
+                                   param1=self.cycleFilter[0],
+                                   param2=self.cycleFilter[1],
+                                   minRadius=self.cycleFilter[2],
+                                   maxRadius=self.cycleFilter[3])
         
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -215,7 +215,6 @@ class CheckImage:
             one_new = one
 
         # Logger
-        saver(crop,"C")
         draw = self._drawCircles(crop, one_new)
         saver(draw,"D_%s"%path[-8:-4])
         
@@ -304,7 +303,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = 'C:/Users/meikangfu/Desktop/image/image/2017-08-25 (1) 0019.jpg'
+    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0014.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     print("Err", err)
