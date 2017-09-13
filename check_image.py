@@ -13,6 +13,17 @@ from check_color import checkRed,checkBlue,checkGreen,checkColor,checkAllColor
 from functools import cmp_to_key
 from remove_noise import clean_noise
 
+# Logging for debug
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('find.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Circle sort
 def _sortCircle(a,b):
     if abs(a[1]-b[1]) < 40:
         return b[0]-a[0]
@@ -25,6 +36,7 @@ def _sortSmall(a,b):
     else:
         return b[1]-a[1]
     
+# Get abs
 def _abs(a):
     if a<0:
         return -a
@@ -43,7 +55,7 @@ class CheckImage:
             self.range = [100,3600,700,1320]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [40,25,15,50]
+            self.cycleFilter = [50,40,18,50]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -57,19 +69,6 @@ class CheckImage:
             self.range = [0,3600,500,1100]
             self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
-            
-    def _checkSquare(self, cnt):
-        cnt_len = cv2.arcLength(cnt, True)
-        cnt = cv2.approxPolyDP(cnt, 0.02*cnt_len, True)
-        if len(cnt) == 4 and cv2.contourArea(cnt) > 1000 and cv2.isContourConvex(cnt):
-            cnt = cnt.reshape(-1, 2)
-            max_cos = np.max([self._angle_cos( cnt[i], cnt[(i+1) % 4], cnt[(i+2) % 4] ) for i in range(4)])
-            if max_cos < 0.1:
-                w = cnt[1][1]-cnt[0][1]
-                if w>self.widthFilter[0] and w<self.widthFilter[1]:
-                    self.square = cnt
-                    return True
-        return False
     
     def _drawCircles(self, crop, circles):
         draw = crop.copy()
@@ -180,9 +179,6 @@ class CheckImage:
         # Clean
         crop = clean_noise(crop, self.type)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        crop_gray =  cv2.GaussianBlur(crop_gray,(5,5),0)
-        crop_gray = cv2.Laplacian(crop_gray,cv2.CV_8U)
-        _,crop_gray = cv2.threshold(crop_gray,10,255,cv2.THRESH_BINARY)
         saver(crop_gray,"GRAY_%s"%path[-8:-4])
         
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
@@ -194,6 +190,7 @@ class CheckImage:
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
         
+        # 过滤掉右边的噪声
         right_side = 0
         if self.type == 1:
             if one[0][0]-one[1][0] > self.radius * 3:
@@ -213,34 +210,47 @@ class CheckImage:
                     one_new.append(c)
         else:
             one_new = one
+        
+        # 对下方的可能圆圈做识别，如果存在就插入到one_new中
+        for index,c in enumerate(one_new):
+            c = np.array(c).astype('int')
+            maybe_c = [c[0], c[1]+c[2]*2+20, c[2]]
+            maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
+                                maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
+            maybe_color = checkColor(maybe_circle)
+            if maybe_color!=-1:
+                maymay = 1
+                for ii,cc in enumerate(one_new):
+                    if abs(maybe_c[0]-cc[0]) < self.radius*1.5 and abs(maybe_c[1]-cc[1]) < self.radius*1.5:
+                        maymay = 0
+                        break
+                if maymay == 1:
+                    one_new.append(maybe_c)
+                    saver(maybe_circle,"M_%d"%index)
+        
+        one_new = sorted(one_new,key=cmp_to_key(_sortCircle))
 
-        # Logger
-        draw = self._drawCircles(crop, one_new)
-        saver(draw,"D_%s"%path[-8:-4])
-        
-        # 特殊情况，不想改了
-        wrong_num = ['0014','0021','0022','0097','0111',
-                     '0113','0123','0181','0146','0148',
-                     '0180','']
-        if path[-8:-4] in wrong_num:
-            err = 1
-        
         y_min = one_new[0][1]
         x_max = one_new[0][0]
         
-        for c in one_new:
+        for index,c in enumerate(one_new):
             count+=1
+            break_up = 0    # 是否换行
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
 
-            # 如果这个圆和它上面的那个隔了两个。那么认为噪声 
-            if c[1] - y_min > self.radius*4:
+            # 原则上噪声与可识别区域间隔三行
+            if c[1] - y_min > self.radius*6:
+                one_new = one_new[:index]
                 break
+
+            # 识别圆圈
             color = checkColor(circle)
             if _abs(c[1] - y_min) > self.radius*2-20:
                 y_index += 1
                 x_max = c[0] #换行了，代表最右边的坐标x—max更新
+                break_up = 1
             y_min = c[1]
             input_index = y_index   #如果没有问题,用y_index作为结果添加的位置
            
@@ -270,7 +280,21 @@ class CheckImage:
             if abs(result[y_index]) >= self.size[0]:
                 ll = y_index
                 outer_side = c[0]
-        
+
+            # 通过对左边一个圆的地址做检测来找到漏识，如果存在则加入到one_new的下一个
+            maybe_c = [c[0]-c[2]*2-25, c[1], c[2]]
+            if index+1 < len(one_new) and abs(maybe_c[0]- one_new[index+1][0]) > c[2]*2 and abs(result[input_index])<6:
+                maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
+                                maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
+                maybe_color = checkColor(maybe_circle)
+                if maybe_color!=-1:
+                    saver(maybe_circle,"M_%d"%count)
+                    one_new.insert(index+1, maybe_c)
+                   
+        # Logger
+        draw = self._drawCircles(crop, one_new)
+        saver(draw,"D_%s"%path[-8:-4])
+
         #识别报错的东西
         for i in range(0, y_index):
             if abs(result[i]) >= 6:
@@ -283,6 +307,8 @@ class CheckImage:
         return result,one,err
     
     def check(self, path, up_down):
+        logger.info('Image %s with type %d', path, self.type)
+
         err = 0
         result = []
         if up_down==0:
@@ -295,6 +321,8 @@ class CheckImage:
                 err = 2
             else:
                 result = [colors_check,points_check]  = self.check_down(path)
+        if err!=0:
+            logger.debug('Err with type %d', err)
         return err,result
 
 
@@ -303,7 +331,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/kangfu/Downloads/image/2017-08-25 (1) 0014.jpg'
+    path = r'C:\Users\meikangfu\Desktop\image\image\2017-08-25 (1) 0029.jpg'
     checker = CheckImage(1)
     err,result = checker.check(path,0)
     print("Err", err)
