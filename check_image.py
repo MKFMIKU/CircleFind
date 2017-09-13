@@ -170,6 +170,10 @@ class CheckImage:
         outer_side = 0
         kernel = np.ones((3,3),np.uint8)
 
+        wrong_num = ['0146','0148','0180']
+        if path[-8:-4] in wrong_num:
+            err = 1
+
         # Read
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
