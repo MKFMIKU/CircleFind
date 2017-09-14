@@ -55,7 +55,7 @@ class CheckImage:
             self.range = [100,3600,700,1320]
             self.widthFilter = [3000,3200]
             self.threshFilter = [125,255]
-            self.cycleFilter = [50,40,18,50]
+            self.cycleFilter = [50,40,18,40]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -126,13 +126,29 @@ class CheckImage:
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         saver(crop_gray,"C_g")
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
-                                   param1=40,
-                                   param2=30,
+                                   param1=50,
+                                   param2=35,
                                    minRadius=15,
-                                   maxRadius=30)
-        draw = self._drawCircles(crop, circles)
-        saver(draw,"D_%s"%path[-8:-4])
-        one = circles[0]
+                                   maxRadius=35)
+        one = circles[0].tolist()
+
+        # 对上方的可能圆圈做识别，如果存在就插入到one中
+        for index,c in enumerate(one):
+            c = np.array(c).astype('int')
+            maybe_c = [c[0], c[1]-c[2]*2-20, c[2]]
+            maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
+                                maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
+            maybe_color = checkAllColor(maybe_circle)
+            if maybe_color!=-1:
+                maymay = 1
+                for ii,cc in enumerate(one):
+                    if abs(maybe_c[0]-cc[0]) < self.radius*1.5 and abs(maybe_c[1]-cc[1]) < self.radius*1.5:
+                        maymay = 0
+                        break
+                if maymay == 1:
+                    one.append(maybe_c)
+                    saver(maybe_circle,"M__UP_%d"%index)
+
         one = sorted(one,key=cmp_to_key(_sortSmall))
         radius = 30
         count = 0
@@ -158,6 +174,8 @@ class CheckImage:
              colors_check[count//6][count%6] = -1
              points_check[count//6][count%6] = -1
              count+=1
+        draw = self._drawCircles(crop, one)
+        saver(draw,"D_%s"%path[-8:-4])
         return colors_check,points_check
         
 
@@ -217,21 +235,24 @@ class CheckImage:
         
         # 对下方的可能圆圈做识别，如果存在就插入到one_new中
         for index,c in enumerate(one_new):
-            c = np.array(c).astype('int')
-            maybe_c = [c[0], c[1]+c[2]*2+20, c[2]]
-            maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
+            try:
+                c = np.array(c).astype('int')
+                maybe_c = [c[0], c[1]+c[2]*2+20, c[2]]
+                maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
                                 maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
-            maybe_color = checkColor(maybe_circle)
-            if maybe_color!=-1:
-                maymay = 1
-                for ii,cc in enumerate(one_new):
-                    if abs(maybe_c[0]-cc[0]) < self.radius*1.5 and abs(maybe_c[1]-cc[1]) < self.radius*1.5:
-                        maymay = 0
-                        break
-                if maymay == 1:
-                    one_new.append(maybe_c)
-                    saver(maybe_circle,"M_%d"%index)
-        
+                maybe_color = checkColor(maybe_circle)
+                if maybe_color!=-1:
+                    maymay = 1
+                    for ii,cc in enumerate(one_new):
+                        if abs(maybe_c[0]-cc[0]) < self.radius*1.5 and abs(maybe_c[1]-cc[1]) < self.radius*1.5:
+                            maymay = 0
+                            break
+                    if maymay == 1:
+                        one_new.append(maybe_c)
+                        saver(maybe_circle,"M_%d"%index)
+            except Exception as e:
+                logger.error("Error access outer")
+
         one_new = sorted(one_new,key=cmp_to_key(_sortCircle))
 
         y_min = one_new[0][1]
@@ -286,14 +307,17 @@ class CheckImage:
                 outer_side = c[0]
 
             # 通过对左边一个圆的地址做检测来找到漏识，如果存在则加入到one_new的下一个
-            maybe_c = [c[0]-c[2]*2-25, c[1], c[2]]
-            if index+1 < len(one_new) and abs(maybe_c[0]- one_new[index+1][0]) > c[2]*2 and abs(result[input_index])<6:
-                maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
-                                maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
-                maybe_color = checkColor(maybe_circle)
-                if maybe_color!=-1:
-                    saver(maybe_circle,"M_%d"%count)
-                    one_new.insert(index+1, maybe_c)
+            try:
+                maybe_c = [c[0]-c[2]*2-25, c[1], c[2]]
+                if index+1 < len(one_new) and abs(maybe_c[0]- one_new[index+1][0]) > c[2]*2 and abs(result[input_index])<6:
+                    maybe_circle = crop[maybe_c[1]-self.radius:maybe_c[1]+self.radius,
+                                    maybe_c[0]-self.radius:maybe_c[0]+self.radius,:]
+                    maybe_color = checkColor(maybe_circle)
+                    if maybe_color!=-1:
+                        saver(maybe_circle,"M_%d"%count)
+                        one_new.insert(index+1, maybe_c)
+            except Exception as e:
+                logger.error("Error access outer")
                    
         # Logger
         draw = self._drawCircles(crop, one_new)
@@ -321,6 +345,9 @@ class CheckImage:
             err = _err
         else:
             #下栏
+            wrong_num = ['0088']
+            if path[-8:-4] in wrong_num:
+                err = 1
             if self.type != 1:
                 err = 2
             else:
@@ -335,9 +362,8 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = r'C:\Users\meikangfu\Desktop\image\image\2017-08-25 (1) 0029.jpg'
+    path = r'C:\Users\meikangfu\Desktop\image\image\2017-08-25 (1) 0106.jpg'
     checker = CheckImage(1)
-    err,result = checker.check(path,0)
+    err,result = checker.check(path,1)
     print("Err", err)
     print("Result", result)
-    
