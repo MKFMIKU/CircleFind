@@ -1,34 +1,17 @@
 version: 1.0.{build}
+
+
 environment:
-  matrix:
-    - PYTHON: "C:\\Miniconda-x64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "86"
+  CONDA: C:\Miniconda35-x86
 
-platform: x86
-
-configuration: Release
-
-init:
-  - cmd: ECHO Processor architecture - %PROCESSOR_ARCHITECTURE%
-  - cmd: wmic OS get OSArchitecture
-
-  # As AppVeyor has multiple python install, verify which one uses by default
-  - cmd: ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%
-  - cmd: python --version
-  - cmd: python -c "import struct; print(struct.calcsize('P') * 8)"
-
-  # Set the relevant python and pip location to the path
-  - cmd: set PATH=%PYTHON%;%PYTHON%\scripts;%PATH%
-  - cmd: ECHO Path - %PATH%
-
-  # Verify the new default python
-  - cmd: python --version
-  - cmd: python -c "import struct; print(struct.calcsize('P') * 8)"
-  - cmd: pip --version
-
-  # Check out installed python packages
-  - cmd: pip freeze
+before_build:
+  - cmd: set PATH=%CONDA%;%CONDA%\Scripts;%CONDA%\Library\bin;%PATH%
+  - cmd: conda config --add channels conda-forge
+  - cmd: conda config --add channels bioconda
+  - cmd: conda config --add channels csachs
+  - cmd: conda update -y conda
+  # unfortunately current pyinstaller in conda does not work with python 3.6
+  - cmd: pip install git+https://github.com/pyinstaller/pyinstaller
 
 install:
   # Temporary fix for PyQt not being installed in correct directory: https://github.com/appveyor/ci/issues/363
