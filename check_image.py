@@ -66,7 +66,7 @@ class CheckImage:
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [0,3600,500,1100]
+            self.range = [0,3600,400,1100]
             self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
     
@@ -332,6 +332,8 @@ class CheckImage:
                         if abs(result[i])-5 >= j-i:
                             err = 1
                             break
+        if result[0] == 0:
+            err = 1
         return result,one,err
     
     def check(self, path, up_down):
@@ -362,8 +364,8 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = r'C:\Users\meikangfu\Desktop\image\image\2017-08-25 (1) 0106.jpg'
-    checker = CheckImage(1)
-    err,result = checker.check(path,1)
+    path = '/Users/meikangfu/Downloads/over-img/img (507).jpg'
+    checker = CheckImage(3)
+    err,result = checker.check(path,0)
     print("Err", err)
     print("Result", result)
