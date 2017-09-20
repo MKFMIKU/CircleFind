@@ -4,21 +4,15 @@ version: 1.0.{build}
 environment:
   CONDA: C:\Miniconda35-x86
 
-before_build:
+init:
   - cmd: set PATH=%CONDA%;%CONDA%\Scripts;%CONDA%\Library\bin;%PATH%
   - cmd: conda config --add channels conda-forge
-  - cmd: conda config --add channels bioconda
-  - cmd: conda config --add channels csachs
   - cmd: conda update -y conda
   # unfortunately current pyinstaller in conda does not work with python 3.6
   - cmd: pip install git+https://github.com/pyinstaller/pyinstaller
 
 install:
-  # Temporary fix for PyQt not being installed in correct directory: https://github.com/appveyor/ci/issues/363
-  - REG ADD HKCU\Software\Python\PythonCore\3.4\InstallPath /f /ve /t REG_SZ /d C:\Python34
-
   # Download PyQt5 with 10min timeout, rename to pyqt5_installer.exe, and install
-  - ps: Start-FileDownload 'http://downloads.sourceforge.net/project/pyqt/PyQt5/PyQt-5.4.2/PyQt5-5.4.2-gpl-Py3.4-Qt5.4.2-x32.exe' -FileName pyqt5_installer.exe -Timeout 600000
   - cmd: conda install pyqt5
   - cmd: python -c "import PyQt5"
 
