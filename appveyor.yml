@@ -1,0 +1,15 @@
+version: 1.0.{build}
+environment:
+  matrix:
+    - PYTHON: "C:\\Miniconda-x64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+install:
+  - cmd: pip install -r requirements.txt
+build: off
+
+test_script:
+  - 'pyinstaller main.py -p C:\ProgramData\Anaconda3\envs\pack\Lib\site-packages\PyQt5\Qt\bin -w'
+
+after_test:
+  - ps: 'ls dist'
