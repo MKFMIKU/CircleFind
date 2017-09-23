@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "OCR识别软件beta.01版"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OCR识别软件V1.0版"))
         self.label.setText(_translate("MainWindow", "开始"))
         self.label_2.setText(_translate("MainWindow", "停止"))
         self.label_6.setText(_translate("MainWindow", "上栏"))

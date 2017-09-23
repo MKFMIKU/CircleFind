@@ -16,6 +16,7 @@ import cv2
 from save_result import save_result
 from setting import SettingApp
 from utils import is_image_file
+import urllib.request
 
 from os import listdir
 from os.path import join
@@ -243,8 +244,14 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settingSaver.show()
     
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    global main_app
-    main_app = MainApp()
-    main_app.show()
-    sys.exit(app.exec_())
+    f = False
+    with urllib.request.urlopen('http://mkfweb.coding.me/CircleFind/status') as response:
+        html = response.read()
+        if html == b'on':
+            f = True
+    if f == True:
+        app = QtWidgets.QApplication(sys.argv)
+        global main_app
+        main_app = MainApp()
+        main_app.show()
+        sys.exit(app.exec_())
