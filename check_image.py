@@ -66,8 +66,7 @@ class CheckImage:
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [0,3600,400,1100]
-            self.cycleFilter = [50,40,25,45]
+            self.range = [0,3600,450,1100]
             self.cycleFilter = [50,40,20,40]
     
     def _drawCircles(self, crop, circles):
@@ -232,6 +231,10 @@ class CheckImage:
                     one_new.append(c)
         else:
             one_new = one
+
+        if self.type == 3:
+            if one[0][0] - one[1][0] > self.radius*3:
+                one = one[1:]
         
         # 对下方的可能圆圈做识别，如果存在就插入到one_new中
         for index,c in enumerate(one_new):
@@ -364,7 +367,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/meikangfu/Downloads/over-img/img (507).jpg'
+    path = '/Users/meikangfu/Downloads/over-img/img (515).jpg'
     checker = CheckImage(3)
     err,result = checker.check(path,0)
     print("Err", err)
