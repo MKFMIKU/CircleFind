@@ -51,9 +51,9 @@ class CheckImage:
     def _checkType(self, type):
         if type==1:
             self.radius = 30
-            self.size = [6,52]
+            self.size = [6,50]
             self.range = [50,3600,700,1350]
-            self.cycleFilter = [50,30,20,35]
+            self.cycleFilter = [50,30,20,38]
         if type==2:
             self.radius = 35
             self.size = [6,50]
@@ -206,7 +206,7 @@ class CheckImage:
         # 过滤掉右边的噪声
         right_side = 0
         if self.type == 1:
-            if one[0][0]-one[1][0] > self.radius * 3:
+            if one[0][0]-one[1][0] > self.radius * 2.5:
                 right_side = one[0][0] - one[0][2] 
                 one = one[1:]
             else:
@@ -250,6 +250,7 @@ class CheckImage:
         x_max = one_new[0][0]
         
         for index,c in enumerate(one_new):
+            print(index, c)
             count+=1
             break_up = 0    # 是否换行
             c = np.array(c).astype('int')
@@ -257,9 +258,9 @@ class CheckImage:
                           c[0]-self.radius:c[0]+self.radius,:]
 
             # 原则上噪声与可识别区域间隔三行
-            if c[1] - y_min > self.radius*6:
-                one_new = one_new[:index]
-                break
+            # if c[1] - y_min > self.radius*6:
+            #     one_new = one_new[:index]
+            #     break
 
             # 识别圆圈
             color = checkColor(circle)
@@ -290,9 +291,15 @@ class CheckImage:
             if abs(result[y_index])==5 and abs(result[y_index]+add) < abs(result[y_index]) + abs(add):
                 input_index = ll
 
+            if input_index > self.size[1]:
+                break
+            # 如果出现复数的换行，一律报错
+            if y_index-input_index==1 and abs(result[input_index]) >= 6 and abs(result[input_index]) >=5:
+                err = 2
+
             #进行叠加计算
             result[input_index] += add
-            
+
             if abs(result[y_index]) >= self.size[0]:
                 ll = y_index
                 outer_side = c[0]
@@ -352,7 +359,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    for i in range(1,181):
+    for i in range(286,287):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg' % i
         checker = CheckImage(1)
         err,result = checker.check(path,0)
