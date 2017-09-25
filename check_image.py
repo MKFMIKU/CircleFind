@@ -52,7 +52,7 @@ class CheckImage:
         if type==1:
             self.radius = 30
             self.size = [6,50]
-            self.range = [50,3600,700,1350]
+            self.range = [50,3600,700,1325]
             self.cycleFilter = [50,30,20,38]
         if type==2:
             self.radius = 35
@@ -62,7 +62,7 @@ class CheckImage:
         if type==3:
             self.radius = 35
             self.size = [6, 43]
-            self.range = [0,3600,450,1100]
+            self.range = [0,3600,425,1100]
             self.cycleFilter = [50,40,20,40]
     
     def _drawCircles(self, crop, circles):
@@ -206,13 +206,14 @@ class CheckImage:
         # 过滤掉右边的噪声
         right_side = 0
         if self.type == 1:
-            if one[0][0]-one[1][0] > self.radius * 2.5:
+            if one[0][0]-one[1][0] > one[0][2]*2+20:
                 right_side = one[0][0] - one[0][2] 
                 one = one[1:]
             else:
                 right_side = one[1][0] - one[1][2]
                 one = one[2:]
             one_new = []
+            
             for c in one:
                 f = 0
                 if c[0] > right_side:
@@ -248,18 +249,22 @@ class CheckImage:
 
         y_min = one_new[0][1]
         x_max = one_new[0][0]
+
+        left_side = 0
         
         for index,c in enumerate(one_new):
+            if c[0] < left_side:
+                continue
             count+=1
             break_up = 0    # 是否换行
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
 
-            # 原则上噪声与可识别区域间隔三行
-            # if c[1] - y_min > self.radius*6:
-            #     one_new = one_new[:index]
-            #     break
+            #原则上噪声与可识别区域间隔三行
+            if c[1] - y_min > self.radius*6:
+                one_new = one_new[:index]
+                break
 
             # 识别圆圈
             color = checkColor(circle)
@@ -292,12 +297,17 @@ class CheckImage:
 
             if input_index > self.size[1]:
                 break
-            # 如果出现复数的换行，一律报错
-            if y_index-input_index==1 and abs(result[input_index]) >= 6 and abs(result[input_index]) >=5:
-                err = 2
 
+            # 如果出现复数的换行，一律报错
+            if y_index-input_index==2 and abs(result[y_index-1])>=5:
+                err = 1
+        
             #进行叠加计算
             result[input_index] += add
+
+            # 右边噪声过滤
+            if abs(result[input_index]) == 6:
+                left_side = c[0] - c[2] - 10
 
             if abs(result[y_index]) >= self.size[0]:
                 ll = y_index
@@ -358,7 +368,7 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    for i in range(286,287):
+    for i in range(820, 830):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg' % i
         checker = CheckImage(1)
         err,result = checker.check(path,0)
