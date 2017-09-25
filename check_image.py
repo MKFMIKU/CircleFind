@@ -50,19 +50,15 @@ class CheckImage:
         
     def _checkType(self, type):
         if type==1:
-            self.radius = 25
+            self.radius = 30
             self.size = [6,52]
-            self.range = [100,3600,700,1320]
-            self.widthFilter = [3000,3200]
-            self.threshFilter = [125,255]
-            self.cycleFilter = [50,40,18,40]
+            self.range = [50,3600,700,1350]
+            self.cycleFilter = [50,30,20,35]
         if type==2:
             self.radius = 35
             self.size = [6,50]
             self.range = [50,3600,400,1000]
-            self.widthFilter = [2800,3500]
-            self.threshFilter = [225,255]
-            self.cycleFilter = [40,25,25,35]
+            self.cycleFilter = [50,40,20,40]
         if type==3:
             self.radius = 35
             self.size = [6, 43]
@@ -126,9 +122,9 @@ class CheckImage:
         saver(crop_gray,"C_g")
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=50,
-                                   param2=35,
+                                   param2=30,
                                    minRadius=15,
-                                   maxRadius=35)
+                                   maxRadius=34)
         one = circles[0].tolist()
 
         # 对上方的可能圆圈做识别，如果存在就插入到one中
@@ -187,20 +183,16 @@ class CheckImage:
         outer_side = 0
         kernel = np.ones((3,3),np.uint8)
 
-        wrong_num = ['0146','0148','0180']
-        if path[-8:-4] in wrong_num:
-            err = 1
-
         # Read
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
         crop = cv2.flip(crop,-1)
-        saver(crop,"CROP")
+        # saver(crop,"CROP")
         
         # Clean
         crop = clean_noise(crop, self.type)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        saver(crop_gray,"GRAY_%s"%path[-8:-4])
+        # saver(crop_gray,"GRAY_%s"%path[-8:-4])
         
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
                                    param1=self.cycleFilter[0],
@@ -231,10 +223,6 @@ class CheckImage:
                     one_new.append(c)
         else:
             one_new = one
-
-        if self.type == 3:
-            if one[0][0] - one[1][0] > self.radius*3:
-                one = one[1:]
         
         # 对下方的可能圆圈做识别，如果存在就插入到one_new中
         for index,c in enumerate(one_new):
@@ -350,9 +338,6 @@ class CheckImage:
             err = _err
         else:
             #下栏
-            wrong_num = ['0088']
-            if path[-8:-4] in wrong_num:
-                err = 1
             if self.type != 1:
                 err = 2
             else:
@@ -367,8 +352,10 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-    path = '/Users/meikangfu/Downloads/over-img/img (515).jpg'
-    checker = CheckImage(3)
-    err,result = checker.check(path,0)
-    print("Err", err)
-    print("Result", result)
+    for i in range(1,181):
+        path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg' % i
+        checker = CheckImage(1)
+        err,result = checker.check(path,0)
+        print("Path", path)
+        print("Err", err)
+        print("Result", result)
