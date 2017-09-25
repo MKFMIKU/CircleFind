@@ -250,7 +250,6 @@ class CheckImage:
         x_max = one_new[0][0]
         
         for index,c in enumerate(one_new):
-            print(index, c)
             count+=1
             break_up = 0    # 是否换行
             c = np.array(c).astype('int')
