@@ -230,6 +230,10 @@ class CheckImage:
             if abs(result[y_index])==5 and abs(result[y_index]+add) < abs(result[y_index]) + abs(add):
                 input_index = ll
 
+            #双换行,报错
+            if y_index-input_index==2 and result[y_index-1]==5 and abs(add + result[y_index-1])==abs(add)+abs(result[y_index-1]):
+                err=1
+
             #进行叠加计算
             result[input_index] += add
             
@@ -270,10 +274,10 @@ if __name__ == "__main__":
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
 
-    for i in range(509,560):
+    for i in range(270,280):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg'%i
-        checker = CheckImage(3)
+        print(path)
+        checker = CheckImage(1)
         err,result = checker.check(path,0)
         print("Err", err)
         print("Result", result)
-    
