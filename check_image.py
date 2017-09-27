@@ -203,6 +203,11 @@ class CheckImage:
             c = np.array(c).astype('int')
             circle = crop[c[1]-self.radius:c[1]+self.radius,
                           c[0]-self.radius:c[0]+self.radius,:]
+
+            # 原则上噪声与可识别区域间隔三行
+            if c[1] - y_min > self.radius*6:
+                break
+
             color = checkColor(circle)
             if _abs(c[1] - y_min) > self.radius*2-20:
                 y_index += 1
@@ -230,9 +235,10 @@ class CheckImage:
             if abs(result[y_index])==5 and abs(result[y_index]+add) < abs(result[y_index]) + abs(add):
                 input_index = ll
 
-            #双换行,报错
-            if y_index-input_index==2 and result[y_index-1]==5 and abs(add + result[y_index-1])==abs(add)+abs(result[y_index-1]):
-                err=1
+            if y_index-input_index>=2 and abs(result[input_index+1])>=5 and abs(result[input_index])>=7:
+                print("GG")
+                if abs(add + result[input_index+1])==abs(add)+abs(result[input_index+1]):
+                    input_index += 1                    
 
             #进行叠加计算
             result[input_index] += add
@@ -274,10 +280,10 @@ if __name__ == "__main__":
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
 
-    for i in range(270,280):
+    for i in range(340,341):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg'%i
         print(path)
-        checker = CheckImage(1)
+        checker = CheckImage(3)
         err,result = checker.check(path,0)
         print("Err", err)
         print("Result", result)
