@@ -28,8 +28,9 @@ install:
   - "python --version"
 
   # Install dependencies
-  - conda install -q h5py numpy matplotlib requests setuptools
   - pip install -r requirements.txt
+  - conda install -c conda-forge opencv 
+  - conda install -q requests setuptools scikit-image pyyaml
   - pip install pyinstaller
 
   # Add to path the current folder
