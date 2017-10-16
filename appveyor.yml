@@ -1,33 +1,44 @@
-version: 1.0.{build}
+version: master-{build}
 
+branches:
+  only:
+  - master
 
 environment:
-  CONDA: C:\Miniconda35-x86
+  global:
+    MINICONDA: "C:\\Miniconda3-x32"
 
-init:
-  - cmd: set PATH=%CONDA%;%CONDA%\Scripts;%CONDA%\Library\bin;%PATH%
-  - cmd: conda config --add channels conda-forge
-  - cmd: conda update -y conda
-  # unfortunately current pyinstaller in conda does not work with python 3.6
-  - cmd: pip install git+https://github.com/pyinstaller/pyinstaller
+  matrix:
+    - PYTHON_VERSION: 3.5
 
 install:
-  # Download PyQt5 with 10min timeout, rename to pyqt5_installer.exe, and install
-  - cmd: conda install pyqt5
-  - cmd: python -c "import PyQt5"
+  # Install miniconda using a powershell script.
+  # - "choco install -y miniconda"
+  - "SET PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
 
-  # Install python dependencies
-  - cmd: pip install pyinstaller
+  # Install the build and runtime dependencies of the project.
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - "conda create -q -n pack python=%PYTHON_VERSION%"
+  - conda config --add channels conda-forge
+  - activate pack
 
-  # Check installed packages again
-  - cmd: pip freeze
+  # Check that we have the expected version of Python
+  - "python --version"
 
-  # Build mu using PyInstaller and rename executable with timestamp
-  - cmd: pyinstaller pyinstaller.spec
-  - cmd: dir dist
+  # Install dependencies
+  - conda install -q h5py lxml numpy matplotlib pydap requests shapely proj4 geos cartopy setuptools gdal
+  - pip install wxPython
+  - pip install -r requirements.txt 
+  - pip install pyinstaller
 
-# Not a project with an msbuild file, build done at install.
-build: None
+  # Add to path the current folder
+  - "SET PYTHONPATH=%PYTHONPATH%;%CD%"
 
-# No tests for now
-#test_script: None
+build_script:
+  - pyinstaller main.py
+
+artifacts:
+    # Archive the generated wheel package and the frozen application in the ci.appveyor.com build report.
+    - path: dist\*
