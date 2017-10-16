@@ -6,7 +6,7 @@ branches:
 
 environment:
   global:
-    MINICONDA: "C:\\Miniconda35
+    MINICONDA: "C:\\Miniconda35"
 
   matrix:
     - PYTHON_VERSION: 3.5
@@ -20,24 +20,23 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n pack python=%PYTHON_VERSION%"
+  - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - conda config --add channels conda-forge
-  - activate pack
+  - activate test-environment
 
   # Check that we have the expected version of Python
   - "python --version"
 
   # Install dependencies
-  - conda install -q h5py lxml numpy matplotlib pydap requests shapely proj4 geos cartopy setuptools gdal
-  - pip install wxPython
-  - pip install -r requirements.txt 
+  - conda install -q h5py numpy matplotlib requests setuptools
+  - pip install -r requirements.txt
   - pip install pyinstaller
 
   # Add to path the current folder
   - "SET PYTHONPATH=%PYTHONPATH%;%CD%"
 
 build_script:
-  - pyinstaller main.py
+  - build
 
 artifacts:
     # Archive the generated wheel package and the frozen application in the ci.appveyor.com build report.
