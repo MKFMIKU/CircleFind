@@ -280,10 +280,10 @@ if __name__ == "__main__":
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
 
-    for i in range(340,341):
+    for i in range(271,274):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg'%i
         print(path)
-        checker = CheckImage(3)
+        checker = CheckImage(1)
         err,result = checker.check(path,0)
         print("Err", err)
         print("Result", result)

@@ -203,7 +203,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.begin_run==1:
             self.logOuter("暂停\n", 1)
             self.begin_run = 0
-            self.startButton.setStyleSheet("border-image: url(:/new/outer/start_off.png)")
+            self.startButton.setStyleSheet("border-image: url(:/new/outer/start.png)")
             self.label.setText(_translate("MainWindow", "开始"))
         else:
             self.logOuter("开始\n", 1)
@@ -213,9 +213,12 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.label.setText(_translate("MainWindow", "暂停"))
             
     def stopButtonAction(self):
+        _translate = QtCore.QCoreApplication.translate
         print("Stop")
         self.logOuter("停止\n", 1)
         self.begin_run = 0
+        self.startButton.setStyleSheet("border-image: url(:/new/outer/start.png)")
+        self.label.setText(_translate("MainWindow", "开始"))
         now = datetime.datetime.now()
         time = now.strftime('%Y_%m_%d_%H_%M_%S')
         
