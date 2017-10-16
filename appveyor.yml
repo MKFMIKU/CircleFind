@@ -28,9 +28,8 @@ install:
   - "python --version"
 
   # Install dependencies
-  - pip install -r requirements.txt
   - conda install -c conda-forge opencv 
-  - conda install -q requests setuptools scikit-image pyyaml
+  - conda install -q requests setuptools scikit-image pyyaml pillow pandas openpyxl
   - pip install pyinstaller
 
   # Add to path the current folder
