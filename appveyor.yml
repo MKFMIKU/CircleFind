@@ -6,7 +6,7 @@ branches:
 
 environment:
   global:
-    MINICONDA: "C:\\Miniconda3-x32"
+    MINICONDA: "C:\\Miniconda35
 
   matrix:
     - PYTHON_VERSION: 3.5
