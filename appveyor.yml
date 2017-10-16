@@ -29,8 +29,8 @@ install:
 
   # Install dependencies
   - conda install -c conda-forge opencv 
-  - conda install -q requests setuptools scikit-image pyyaml pillow pandas openpyxl
-  - pip install pyinstaller
+  - conda install -q scikit-image pyyaml pillow pandas openpyxl
+  - pip install pyinstaller==3.2.1
 
   # Add to path the current folder
   - "SET PYTHONPATH=%PYTHONPATH%;%CD%"
