@@ -30,7 +30,7 @@ install:
   - "python --version"
 
   # Install dependencies
-  - pip install pyinstaller==3.3
+  - pip install pyinstaller==3.2
   - conda install -c conda-forge opencv 
   - conda install -q scikit-image pyyaml pillow pandas openpyxl
 
