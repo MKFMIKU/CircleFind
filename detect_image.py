@@ -47,6 +47,8 @@ class DetectImage:
                 mse_min = mse
         '''
         img = cv2.imread(f, 0)
+        if img.shape[1] < 1600:
+            return 4
         _,img = cv2.threshold(img, 127,255,cv2.THRESH_BINARY_INV)
         # saver(img[0:3400,1600:2400],"I")
         # print(img[0:3400,1600:2400].mean())

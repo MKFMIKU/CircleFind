@@ -1,26 +1,49 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  3 20:47:02 2017
+Created on Fri Dec 22 23:23:27 2017
 
-@author: kangfu
+@author: QH
 """
+
 import cv2
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-from utils import saver
-from check_color import checkColor
+from os import listdir
+from os.path import join
+import os
+from utils import is_image_file
 
-im = cv2.imread('outer/test_62_.png')
+def on_mouse(event, x, y, flags, params):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        sbox = [x, y]
+        boxes.append(sbox)
+             # print count
+             # print sbox
 
-img_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+    elif event == cv2.EVENT_LBUTTONUP:
+        ebox = [x, y]
+        boxes.append(ebox)
+        print(boxes)
+        print("W: {} H:{}".format(boxes[-1][1]-boxes[-2][1], boxes[-1][0]-boxes[-2][0]))
+        crop = im[boxes[-2][1]:boxes[-1][1],boxes[-2][0]:boxes[-1][0]]
+        
+        cv2.imshow('crop',crop)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
 
-lower_red = np.array([160, 100, 100])
-upper_red = np.array([180, 255, 255])
 
-lower_blue = np.array([100,150,0])
-upper_blue = np.array([140,255,255])
+path =  '../img_test/'
+boxes = []
 
-mask_red = cv2.inRange(img_hsv.copy(), lower_red, upper_red)
-mask_blue = cv2.inRange(img_hsv, lower_blue, upper_blue)
+image_filenames = [path+x for x in listdir(path) if is_image_file(x)]
+
+img = image_filenames[0]
+
+im = cv2.imread(img)
+
+cv2.namedWindow('image')
+cv2.setMouseCallback('image', on_mouse, 0)
+cv2.imshow('image',im)
+cv2.waitKey(0)
+cv2.destroyAllWindows()

@@ -54,8 +54,11 @@ class CheckImage:
             self.radius = 35
             self.size = [6, 43]
             self.range = [0,3600,425,1100]
-            self.cycleFilter = [50,40,25,45]
             self.cycleFilter = [50,40,20,40]
+        if type==4:
+            self.size = [6, 15]
+            self.cycleFilter = [45,35,20,40]
+            pass
             
     def _checkSquare(self, cnt):
         cnt_len = cv2.arcLength(cnt, True)
@@ -257,6 +260,9 @@ class CheckImage:
                             err = 1
                             break
         return result,one,err
+
+    def check_card(self, path):
+        pass
     
     def check(self, path, up_down):
         err = 0
@@ -265,12 +271,16 @@ class CheckImage:
             #上栏
             result,_,_err  = self.check_up(path)
             err = _err
-        else:
+        elif up_down==1:
             #下栏
             if self.type != 1:
                 err = 2
             else:
                 result = [colors_check,points_check]  = self.check_down(path)
+        else:
+            #卡片
+            result = self.check_card(path)
+
         return err,result
 
 
@@ -280,10 +290,10 @@ if __name__ == "__main__":
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
 
-    for i in range(271,274):
+    for i in range(340,341):
         path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg'%i
         print(path)
-        checker = CheckImage(1)
+        checker = CheckImage(3)
         err,result = checker.check(path,0)
         print("Err", err)
         print("Result", result)
