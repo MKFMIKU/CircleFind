@@ -33,6 +33,7 @@ install:
   - pip install pyinstaller==3.2
   - conda install -c conda-forge opencv 
   - conda install -q scikit-image pyyaml pillow pandas openpyxl
+  - copy hook-pandas.py C:\miniconda35\envs\test-environment\lib\site-packages\PyInstaller\Qt\hooks
 
   # Add to path the current folder
   - "SET PYTHONPATH=%PYTHONPATH%;%CD%"
