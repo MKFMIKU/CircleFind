@@ -34,16 +34,11 @@ def on_mouse(event, x, y, flags, params):
 
 
 path =  '../img_test/'
-boxes = []
 
 image_filenames = [path+x for x in listdir(path) if is_image_file(x)]
-
-img = image_filenames[0]
-
-im = cv2.imread(img)
-
-cv2.namedWindow('image')
-cv2.setMouseCallback('image', on_mouse, 0)
-cv2.imshow('image',im)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+count = 0
+for img in image_filenames:
+    im = cv2.imread(img)
+    im = im[195:1215, 765:1185]
+    cv2.imwrite('out/im_%d.png'%count, im)
+    count += 1

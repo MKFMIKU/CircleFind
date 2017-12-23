@@ -104,6 +104,7 @@ class Runthread(QtCore.QThread):
                         main_app.down_ans[1].extend(b)
                         main_app.last_filenames_down.append(f)
                     else:
+                        main_app.card_ans.extend(save_result(res,log,2))
                         main_app.last_filenames_card.append(f)
                 else:
                     break
@@ -257,7 +258,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 result = pd.DataFrame(self.up_ans)
                 result.to_excel(self.setting['result']+"/结果_%s.xlsx"%time)
                 boldExcel(self.setting['result']+"/结果_%s.xlsx"%time)
-            else:
+            elif self.up_down==1:
                 result_A = pd.DataFrame(self.down_ans[0])
                 result_B = pd.DataFrame(self.down_ans[1])
                 result_A.to_excel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
@@ -265,7 +266,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 
                 boldExcel(self.setting['result']+"/下栏结果_%s.xlsx"%time)
                 boldExcel(self.setting['result']+"/下栏小点结果_%s.xlsx"%time)
-                
+            elif self.up_down==2:
+                result = pd.DataFrame(self.card_ans)
+                result.to_excel(self.setting['result']+"/卡片结果_%s.xlsx"%time)
+
             self.logOuter("储存结果于 %s\n"%self.setting['result'], 1)
 
         except Exception as e:

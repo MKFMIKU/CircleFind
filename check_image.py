@@ -262,7 +262,35 @@ class CheckImage:
         return result,one,err
 
     def check_card(self, path):
-        pass
+        colors_check = np.zeros((15,6), dtype=np.int)
+        img = cv2.imread(path)
+        crop = img[195:1215, 765:1185]
+        crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
+                                   param1=45.5,
+                                   param2=27,
+                                   minRadius=15,
+                                   maxRadius=32)
+        draw = self._drawCircles(crop, circles)
+        saver(draw,"D_%s"%path[-8:-4])
+        one = circles[0]
+        one = sorted(one,key=cmp_to_key(_sortSmall))
+        radius = 30
+        count = 0
+        points = 0
+        for c in one:
+            # print(c)
+            c = np.array(c).astype('int')
+            circle = crop[c[1]-radius:c[1]+radius,
+                          c[0]-radius:c[0]+radius,:]
+            color = checkAllColor(circle)
+        
+            colors_check[count//6][count%6] = color
+            count+=1
+        for c in range(count,90):
+             colors_check[count//6][count%6] = -1
+             count+=1
+        return colors_check
     
     def check(self, path, up_down):
         err = 0

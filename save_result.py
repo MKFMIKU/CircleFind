@@ -41,7 +41,7 @@ def save_result(res,log,t):
         ans_a.append([""])
         ans_b.append([""])
         return ans_a,ans_b
-    else:
+    elif t==0:
         ans = [[0,log]]
         count = 0
         for r in res:
@@ -55,5 +55,19 @@ def save_result(res,log,t):
                 c = ['该图片系统无法识别']
             if r!=0:
                 ans.append(c)
+        ans.append([""])
+        return ans
+    elif t==2:
+        ans = [[0,log]]
+        count = 0
+        for i in res:
+            count+=1
+            r = [count]
+            for j in i:
+                if j==-1:
+                    r.append('')
+                else:
+                    r.append(j)
+            ans.append(r)
         ans.append([""])
         return ans
