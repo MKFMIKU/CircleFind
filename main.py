@@ -49,7 +49,7 @@ class Runthread(QtCore.QThread):
         try:
             detecter = DetectImage()
         except Exception as e:
-            self._signal.emit("内部逻辑错误", e)
+            self._signal.emit("内部逻辑错误")
             self._signal.emit("停止运行\n")
             main_app.begin_run = 0
 
@@ -68,7 +68,7 @@ class Runthread(QtCore.QThread):
                     need_test = [i for i in  image_filenames if i not in main_app.last_filenames_card]
                 need_test = list(set(need_test))
             except Exception as e:
-                self._signal.emit("文件路径错误，无法读取图片", e)
+                self._signal.emit("文件路径错误，无法读取图片")
                 break
 
             if len(need_test)==0:
