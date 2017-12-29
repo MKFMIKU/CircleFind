@@ -46,8 +46,13 @@ class Runthread(QtCore.QThread):
         self.wait()
 
     def run(self):
-        detecter = DetectImage()
-        main_app._update()
+        try:
+            detecter = DetectImage()
+        except Exception as e:
+            self._signal.emit("内部逻辑错误", e)
+            self._signal.emit("停止运行\n")
+            main_app.begin_run = 0
+
         while True:
             self.setpath = main_app.path
             '''
@@ -65,7 +70,6 @@ class Runthread(QtCore.QThread):
             except Exception as e:
                 self._signal.emit("文件路径错误，无法读取图片", e)
                 break
-
 
             if len(need_test)==0:
                 continue
