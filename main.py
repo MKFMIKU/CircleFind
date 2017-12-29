@@ -197,7 +197,9 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.upButton.setStyleSheet("border-image: url(:/new/outer/up_black.png)")
             self.downButton.setStyleSheet("border-image: url(:/new/outer/down_black.png)")
             self.cardButton.setStyleSheet("border-image: url(:/new/outer/down.png)")
-        
+        with open('setting.yml') as f:
+            self.setting = yaml.safe_load(f)
+            
     def clearLogger(self):
         self.textEdit.clear()
 
@@ -246,6 +248,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def stopButtonAction(self):
         _translate = QtCore.QCoreApplication.translate
         print("Stop")
+        self._update()
         self.logOuter("停止\n", 1)
         self.begin_run = 0
         self.startButton.setStyleSheet("border-image: url(:/new/outer/start.png)")
