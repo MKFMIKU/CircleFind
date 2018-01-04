@@ -60,14 +60,18 @@ def save_result(res,log,t):
     elif t==2:
         ans = [[0,log]]
         count = 0
-        for i in res:
-            count+=1
-            r = [count]
-            for j in i:
-                if j==-1:
-                    r.append('')
-                else:
-                    r.append(j)
-            ans.append(r)
+        if type(res[0]) == type(-1000):
+            ans.append(["图片无法识别"])
+        else:
+            for i in res:
+                count+=1
+                r = [count]
+                for j in i:
+                    if j==-1:
+                        r.append('')
+                    else:
+                        r.append(j)
+                ans.append(r)
+        
         ans.append([""])
         return ans

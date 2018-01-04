@@ -112,6 +112,7 @@ class Runthread(QtCore.QThread):
                             
                     except Exception as e:
                          self._signal.emit("结果储存错误")
+                         print(e)
                     main_app.last_filenames_card.append(f)
 
                 else:
