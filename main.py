@@ -99,17 +99,21 @@ class Runthread(QtCore.QThread):
                         res = [-1000]
                     else:
                         self._signal.emit("检查 %s 结束 种类为：%d"%(f,type))
-                    if main_app.up_down == 0:
-                        main_app.up_ans.extend(save_result(res,log,0))
-                        main_app.last_filenames_up.append(f)
-                    elif main_app.up_down == 1:
-                        a,b = save_result(res,log,1)
-                        main_app.down_ans[0].extend(a)
-                        main_app.down_ans[1].extend(b)
-                        main_app.last_filenames_down.append(f)
-                    else:
-                        main_app.card_ans.extend(save_result(res,log,2))
-                        main_app.last_filenames_card.append(f)
+
+                    try:
+                        if main_app.up_down == 0:
+                            main_app.up_ans.extend(save_result(res,log,0))
+                        elif main_app.up_down == 1:
+                            a,b = save_result(res,log,1)
+                            main_app.down_ans[0].extend(a)
+                            main_app.down_ans[1].extend(b)
+                        else:
+                            main_app.card_ans.extend(save_result(res,log,2))
+                            
+                    except Exception as e:
+                         self._signal.emit("结果储存错误")
+                    main_app.last_filenames_card.append(f)
+
                 else:
                     break
             if  main_app.begin_run == 0:

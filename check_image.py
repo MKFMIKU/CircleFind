@@ -266,13 +266,35 @@ class CheckImage:
         img = cv2.imread(path)
         crop = img[195:1215, 765:1185]
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,20,
+        crop_gray = cv2.GaussianBlur(crop_gray, (5, 5), 0)
+        # ret, thresh = cv2.threshold(im_gauss, 127, 255, 0)
+        circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,40,
                                    param1=45.5,
-                                   param2=27,
+                                   param2=20,
                                    minRadius=15,
-                                   maxRadius=32)
+                                   maxRadius=35)
+        # im2,contours,hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # contours_area = []
+        # for con in contours:
+        #     area = cv2.contourArea(con)
+        #     print("area", area)
+        #     if 800 < area < 2500:
+        #         contours_area.append(con)
+        # contours_cirles = []
+        # for con in contours_area:
+        #     perimeter = cv2.arcLength(con, True)
+        #     area = cv2.contourArea(con)
+        #     if perimeter == 0:
+        #         break
+        #     circularity = 4*math.pi*(area/(perimeter*perimeter))
+        #     print(circularity)
+        #     if 0.5 < circularity < 1.5:
+        #         contours_cirles.append(con)
+        
+        # cv2.drawContours(crop, contours_cirles, -1, (0,255,0), 3)
+
         draw = self._drawCircles(crop, circles)
-        saver(draw,"D_%s"%path[-8:-4])
+        saver(draw, "D_%s"%path[-8:-4])
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortSmall))
         radius = 30
@@ -317,11 +339,9 @@ if __name__ == "__main__":
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
     test_err = "test/err.jpg"
-
-    for i in range(340,341):
-        path = '/Users/meikangfu/Downloads/over-img/img (%d).jpg'%i
-        print(path)
-        checker = CheckImage(3)
-        err,result = checker.check(path,0)
-        print("Err", err)
-        print("Result", result)
+    path = "C:/Users/QH/Desktop/err/2017-12-28 (1) 0003.jpg"
+    print(path)
+    checker = CheckImage(4)
+    err,result = checker.check(path,3)
+    print("Err", err)
+    print("Result", result)
