@@ -302,13 +302,18 @@ class CheckImage:
         points = 0
         for c in one:
             # print(c)
-            c = np.array(c).astype('int')
-            circle = crop[c[1]-radius:c[1]+radius,
-                          c[0]-radius:c[0]+radius,:]
-            color = checkAllColor(circle)
-        
-            colors_check[count//6][count%6] = color
-            count+=1
+            try:
+                c = np.array(c).astype('int')
+                circle = crop[c[1]-radius:c[1]+radius,
+                            c[0]-radius:c[0]+radius,:]
+                color = checkAllColor(circle)
+            
+                colors_check[count//6][count%6] = color
+                count+=1
+            except Exception as e:
+                print("run out of boundry")
+                break
+
         for c in range(count,90):
              colors_check[count//6][count%6] = -1
              count+=1
