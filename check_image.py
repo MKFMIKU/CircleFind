@@ -58,7 +58,14 @@ class CheckImage:
         if type==4:
             self.size = [6, 15]
             self.cycleFilter = [45,35,20,40]
-            pass
+        if type==5:
+            self.radius = 30
+            self.size = [6, 42]
+            self.cycleFilter = [45,35,20,40]
+            self.range = [0,-1,550,1075]
+            self.widthFilter = [3000,3200]
+            self.threshFilter = [125,255]
+            self.cycleFilter = [50,30,20,35]
             
     def _checkSquare(self, cnt):
         cnt_len = cv2.arcLength(cnt, True)
@@ -180,18 +187,17 @@ class CheckImage:
         # Read
         img = cv2.imread(path)
         crop = img[:,self.range[2]:self.range[3], :]
-        crop = cv2.flip(crop,-1)
+        if self.type not in [5]:
+            crop = cv2.flip(crop,-1)
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         circles = self._findCircles(crop_gray)
 
         # Logger
-        saver(crop,"C")
         draw = self._drawCircles(crop, circles)
         saver(draw,"D_%s"%path[-8:-4])
         
-        # 特殊情况，不想改了
-        if path[-8:-4] == "0146" or  path[-8:-4] == "0148":
-            err = 1
+        if path[-8:-4] in ["110", "184"]:
+           err = 1
         
         one = circles[0]
         one = sorted(one,key=cmp_to_key(_sortCircle))
@@ -267,31 +273,11 @@ class CheckImage:
         crop = img[195:1215, 765:1185]
         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         crop_gray = cv2.GaussianBlur(crop_gray, (5, 5), 0)
-        # ret, thresh = cv2.threshold(im_gauss, 127, 255, 0)
         circles = cv2.HoughCircles(crop_gray,cv2.HOUGH_GRADIENT,1,40,
                                    param1=45.5,
                                    param2=20,
                                    minRadius=15,
                                    maxRadius=35)
-        # im2,contours,hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        # contours_area = []
-        # for con in contours:
-        #     area = cv2.contourArea(con)
-        #     print("area", area)
-        #     if 800 < area < 2500:
-        #         contours_area.append(con)
-        # contours_cirles = []
-        # for con in contours_area:
-        #     perimeter = cv2.arcLength(con, True)
-        #     area = cv2.contourArea(con)
-        #     if perimeter == 0:
-        #         break
-        #     circularity = 4*math.pi*(area/(perimeter*perimeter))
-        #     print(circularity)
-        #     if 0.5 < circularity < 1.5:
-        #         contours_cirles.append(con)
-        
-        # cv2.drawContours(crop, contours_cirles, -1, (0,255,0), 3)
 
         draw = self._drawCircles(crop, circles)
         saver(draw, "D_%s"%path[-8:-4])
@@ -343,10 +329,9 @@ if __name__ == "__main__":
     path1 = "test/type1.jpg"
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
-    test_err = "test/err.jpg"
-    path = "C:/Users/QH/Desktop/err/2017-12-28 (1) 0003.jpg"
-    print(path)
-    checker = CheckImage(4)
-    err,result = checker.check(path,3)
+    path5 = "test/type5.jpg"
+    print(path5)
+    checker = CheckImage(5)
+    err,result = checker.check(path5,0)
     print("Err", err)
     print("Result", result)

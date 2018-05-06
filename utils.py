@@ -15,3 +15,7 @@ def saver (var, TAG):
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg"])
 
+def show(im):
+    cv2.imshow('show', im)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

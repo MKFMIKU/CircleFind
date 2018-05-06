@@ -2,6 +2,16 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 import yaml
 from gui.dialogUI import Ui_Dialog
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self):
         super(SettingApp, self).__init__()
@@ -21,7 +31,7 @@ class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
         self.resultFilePath.setText(self.resultFile)
         
     def showEvent(self, event):
-        with open('setting.yml') as f:
+        with open(resource_path('setting.yml')) as f:
             self.setting = yaml.safe_load(f)
             self.scanFile = self.setting['scan']
             self.cameraFile = self.setting['camera']
@@ -34,7 +44,7 @@ class SettingApp(QtWidgets.QMainWindow, Ui_Dialog):
             camera = self.cameraFile,
             result = self.resultFile
         )
-        with open('setting.yml', 'w') as outfile:
+        with open(resource_path('setting.yml'), 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
             self.close()
         

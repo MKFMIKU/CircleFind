@@ -29,6 +29,15 @@ from gui.mainwindowUI import Ui_MainWindow
 from gui.dialogUI import Ui_Dialog
 import gui.outfile
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 def boldExcel(path):
     font = openpyxl.styles.Font(name='Times New Roman',bold=True)
@@ -75,6 +84,13 @@ class Runthread(QtCore.QThread):
                 continue
             need_test.sort()
             for f in need_test:
+                if main_app.up_down == 0:
+                    main_app.last_filenames_up.append(f)
+                elif main_app.up_down == 1:
+                    main_app.last_filenames_down.append(f)
+                else:
+                    main_app.last_filenames_card.append(f)
+                
                 log = f
                 if main_app.begin_run == 1:
                     self._signal.emit("开始检测 %s"%f)
@@ -160,8 +176,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.last_filenames_card = []
         self.up_ans = []
         self.down_ans = [[],[]]
-        self.card_ans = []
-        with open('setting.yml') as f:
+        self.card_ans = []            
+        with open(resource_path('setting.yml')) as f:
             self.setting = yaml.safe_load(f)
         # 初始化部分UI状态
         self.textEdit.setReadOnly(True)
@@ -206,7 +222,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.upButton.setStyleSheet("border-image: url(:/new/outer/up_black.png)")
             self.downButton.setStyleSheet("border-image: url(:/new/outer/down_black.png)")
             self.cardButton.setStyleSheet("border-image: url(:/new/outer/down.png)")
-        with open('setting.yml') as f:
+        with open(resource_path('setting.yml') as f:
             self.setting = yaml.safe_load(f)
             
     def clearLogger(self):
@@ -293,6 +309,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settingSaver.show()
     
 if __name__ == "__main__":
+    print("Power by KangfuMei")
     f = False
     with urllib.request.urlopen('http://mkfweb.coding.me/CircleFind/status') as response:
         html = response.read()
