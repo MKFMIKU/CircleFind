@@ -222,7 +222,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.upButton.setStyleSheet("border-image: url(:/new/outer/up_black.png)")
             self.downButton.setStyleSheet("border-image: url(:/new/outer/down_black.png)")
             self.cardButton.setStyleSheet("border-image: url(:/new/outer/down.png)")
-        with open(resource_path('setting.yml') as f:
+        with open(resource_path('setting.yml')) as f:
             self.setting = yaml.safe_load(f)
             
     def clearLogger(self):
