@@ -58,6 +58,7 @@ class Runthread(QtCore.QThread):
         try:
             detecter = DetectImage()
         except Exception as e:
+            print(e)
             self._signal.emit("内部逻辑错误")
             self._signal.emit("停止运行\n")
             main_app.begin_run = 0

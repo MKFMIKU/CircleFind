@@ -329,7 +329,7 @@ if __name__ == "__main__":
     path1 = "test/type1.jpg"
     path2 = "test/type2.jpg"
     path3 = "test/type3.jpg"
-    path5 = "test/type5.jpg"
+    path5 = "C:/Users/mikum/Desktop/Sample/image0000024A.jpg"
     print(path5)
     checker = CheckImage(5)
     err,result = checker.check(path5,0)

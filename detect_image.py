@@ -20,11 +20,6 @@ path3 = "test/type3.jpg"
 
 class DetectImage:
     def __init__(self):
-        self.type = [
-                cv2.imread(path1, 0)[0:3400,1200:2400],
-                cv2.imread(path2, 0)[0:3400,1200:2400],
-                cv2.imread(path3, 0)[0:3400,1200:2400],
-        ]
         self.orb = cv2.AKAZE_create()
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
         

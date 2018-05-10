@@ -1,6 +1,9 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import yaml
 from gui.dialogUI import Ui_Dialog
+import sys
+import os
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
